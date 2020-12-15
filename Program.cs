@@ -14,7 +14,7 @@ namespace WavefrontObjSharp
             string line;
             while (null != (line = Console.ReadLine()))
             {
-                context.NextLine(line);
+                context.NextLine(line.Trim());
             }
         }
     }

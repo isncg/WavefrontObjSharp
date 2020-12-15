@@ -32,19 +32,20 @@ namespace WavefrontObjSharp
 
 		public void RegisterCommands()
 		{
-			commands.Add("v", new MeshVertexCommand(Vertex.Component.Position));
-			commands.Add("vn", new MeshVertexCommand(Vertex.Component.Noraml));
-			commands.Add("vt", new MeshVertexCommand(Vertex.Component.UV));
-			commands.Add("f", new MeshFaceCommand());
-			commands.Add("o", new MeshCreateCommand());
-			commands.Add("dump", new MeshDumpCommand());
+			commands.Add("v", new ObjCommand_v(Vertex.Component.Position));
+			commands.Add("vn", new ObjCommand_v(Vertex.Component.Noraml));
+			commands.Add("vt", new ObjCommand_v(Vertex.Component.UV));
+			commands.Add("f", new ObjCommand_f());
+			commands.Add("o", new ObjCommand_o());
+			commands.Add("dump", new UtilCommand_dump());
 		}
 
 		public void NextLine(string line)
 		{
 			if (string.IsNullOrWhiteSpace(line))
 				return;
-
+			if(line[0] == '#')
+				return;
 			var split = line.Split(" ");
 			List<string> tokens = new List<string>();
 			foreach (var str in split)
