@@ -90,7 +90,11 @@ namespace WavefrontObjSharp
 	{
 		public void Execute(List<string> param, ObjModel model)
 		{
-			Console.WriteLine(Utils.Dump(model.CurrentMesh, "    "));
+			foreach (var kv in model.meshDict)
+			{
+				Console.WriteLine("mesh: " + kv.Key);
+				Console.WriteLine(Utils.Dump(model.CurrentMesh, "    "));
+			}
 		}
 	}
 

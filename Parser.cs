@@ -38,9 +38,9 @@ namespace WavefrontObjSharp
 			while (null != (line = GetLine()))
 			{
 				if (string.IsNullOrWhiteSpace(line))
-					return model;
+					continue;
 				if (line[0] == '#')
-					return model;
+					continue;
 				var split = line.Split(" ");
 				List<string> tokens = new List<string>();
 				foreach (var str in split)
