@@ -6,7 +6,7 @@ namespace WavefrontObjSharp
 {
 	public class Face
 	{
-		public int[] vertexIndices;
+		public int[] cornerIndices;
 	}
 
 
@@ -17,32 +17,37 @@ namespace WavefrontObjSharp
 		public List<Vertex> corners;
 		public ulong vertexVaiidFlag = 0;
 		private List<Face> curFaceList = null;
-        public List<Face> CurFaceList{
-            get{
-                if(curFaceList!=null)
-                    return curFaceList;
-                string defaultName = string.Empty;
-                if(!mtlFaceList.TryGetValue(defaultName, out curFaceList)){
-                    curFaceList = new List<Face>();
-                    mtlFaceList[defaultName] = curFaceList;
-                }
-                return curFaceList;
-            }
-        }
+		public List<Face> CurFaceList
+		{
+			get
+			{
+				if (curFaceList != null) return curFaceList;
+				string defaultName = string.Empty;
+				if (!mtlFaceList.TryGetValue(defaultName, out curFaceList))
+				{
+					curFaceList = new List<Face>();
+					mtlFaceList[defaultName] = curFaceList;
+				}
+				return curFaceList;
+			}
+		}
 
-        public bool SwitchFaceList(string name, bool createIfNotExist = false){
-            if(mtlFaceList.TryGetValue(name, out curFaceList)){
-                return true;
-            }
-            if(createIfNotExist){
-                curFaceList = new List<Face>();
-                mtlFaceList[name] = curFaceList;
-                return true;
-            }
-            return false;
-        }
-        public Dictionary<string, List<Face>> mtlFaceList = new Dictionary<string, List<Face>>();
-		
+		public bool SwitchFaceList(string name, bool createIfNotExist = false)
+		{
+			if (mtlFaceList.TryGetValue(name, out curFaceList))
+			{
+				return true;
+			}
+			if (createIfNotExist)
+			{
+				curFaceList = new List<Face>();
+				mtlFaceList[name] = curFaceList;
+				return true;
+			}
+			return false;
+		}
+		public Dictionary<string, List<Face>> mtlFaceList = new Dictionary<string, List<Face>>();
+
 		public Mesh()
 		{
 			data = new List<List<Vector>>((int)Vertex.Component.Count);

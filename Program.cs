@@ -1,21 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace WavefrontObjSharp
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Hello World!");
+	class Program
+	{
+		static void Main(string[] args)
+		{
+			Console.WriteLine("Hello World!");
 
-            ObjCommandContext context = new ObjCommandContext();
-            context.RegisterCommands();
+			Parser parser = new Parser();
+			parser.Configure(option =>
+			{
+				option.AddCommand("v", new ObjCommand_v(Vertex.Component.Position));
+				option.AddCommand("vn", new ObjCommand_v(Vertex.Component.Noraml));
+				option.AddCommand("vf", new ObjCommand_v(Vertex.Component.UV));
+				option.AddCommand("f", new ObjCommand_f());
+				option.AddCommand("o", new ObjCommand_o());
+				option.AddCommand("dump", new UtilCommand_dump());
 
-            string line;
-            while (null != (line = Console.ReadLine()))
-            {
-                context.NextLine(line.Trim());
-            }
-        }
-    }
+				option.SetInput(Console.ReadLine);
+			});
+
+			parser.Run();
+		}
+	}
 }

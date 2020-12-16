@@ -12,16 +12,16 @@ namespace WavefrontObjSharp
 			Component = component;
 		}
 
-		public void Execute(List<string> param, ObjCommandContext context)
+		public void Execute(List<string> param, ObjModel model)
 		{
 			var vec = Vector.Parse(param.ToArray());
-			context.currentMesh.data[(int)Component].Add(vec);
+			model.CurrentMesh.data[(int)Component].Add(vec);
 		}
 	}
 
 	public class ObjCommand_f : IObjCommand
 	{
-        static bool VerifyVertex(Mesh mesh, Vertex vertex, ulong flag = 0)
+		static bool VerifyVertex(Mesh mesh, Vertex vertex, ulong flag = 0)
 		{
 			if (flag == 0)
 				flag = mesh.vertexVaiidFlag;
@@ -33,21 +33,23 @@ namespace WavefrontObjSharp
 			return true;
 		}
 
-        static int GetCornerIndex(Mesh mesh, Vertex vertex, bool addNewCorner = true)
+		static int GetCornerIndex(Mesh mesh, Vertex vertex, bool addNewCorner = true)
 		{
 			for (int i = 0; i < mesh.corners.Count; i++)
 			{
 				if (mesh.corners[i].Equals(vertex))
 					return i;
 			}
-            if(addNewCorner){
-                mesh.corners.Add(vertex);
-                return mesh.corners.Count - 1;
-            }
-            return -1;
+			if (addNewCorner)
+			{
+				mesh.corners.Add(vertex);
+				return mesh.corners.Count - 1;
+			}
+			return -1;
 		}
-        static bool AddNewFace(Mesh mesh, List<Vertex> vertices){
-            if (vertices.Count > 0)
+		static bool AddNewFace(Mesh mesh, List<Vertex> vertices)
+		{
+			if (vertices.Count > 0)
 			{
 				ulong flag = mesh.vertexVaiidFlag;
 				if (flag == 0)
@@ -57,66 +59,61 @@ namespace WavefrontObjSharp
 				foreach (var v in vertices)
 					if (!VerifyVertex(mesh, v, flag))
 						return false;
-                string defaultFaceName = string.Empty;
-               
+				string defaultFaceName = string.Empty;
+
 				mesh.CurFaceList.Add(new Face
 				{
-					vertexIndices = vertices.ConvertAll(
-                        vertex => GetCornerIndex(mesh, vertex)).ToArray()
+					cornerIndices = vertices.ConvertAll(
+						vertex => GetCornerIndex(mesh, vertex)).ToArray()
 				});
 				if (mesh.vertexVaiidFlag == 0)
 					mesh.vertexVaiidFlag = flag;
 				return true;
 			}
 			return false;
-        }
-		public void Execute(List<string> param, ObjCommandContext context)
+		}
+		public void Execute(List<string> param, ObjModel model)
 		{
-            if(context.currentMesh == null){
-                context.currentMesh = context.CreateNewMesh("mesh");
-                context.meshDict.Add(context.currentMesh.name, context.currentMesh);
-            }
 			var vertices = param.ConvertAll<Vertex>(str => Vertex.Parse(str));
 			if (vertices.Count > 0)
 			{
-				if (context.currentMesh.vertexVaiidFlag == 0)
-					context.currentMesh.vertexVaiidFlag = vertices[0] != null ? vertices[0].GetValidFlag() : 0;
-				if (context.currentMesh.vertexVaiidFlag == 0)
+				if (model.CurrentMesh.vertexVaiidFlag == 0)
+					model.CurrentMesh.vertexVaiidFlag = vertices[0] != null ? vertices[0].GetValidFlag() : 0;
+				if (model.CurrentMesh.vertexVaiidFlag == 0)
 					return;
-				AddNewFace(context.currentMesh, vertices);
+				AddNewFace(model.CurrentMesh, vertices);
 			}
 		}
 	}
 
 	public class UtilCommand_dump : IObjCommand
 	{
-		public void Execute(List<string> param, ObjCommandContext context)
+		public void Execute(List<string> param, ObjModel model)
 		{
-			Console.WriteLine(Utils.Dump(context.currentMesh, "    "));
+			Console.WriteLine(Utils.Dump(model.CurrentMesh, "    "));
 		}
 	}
 
 
 	public class ObjCommand_o : IObjCommand
 	{
-		public void Execute(List<string> param, ObjCommandContext context)
+		public void Execute(List<string> param, ObjModel model)
 		{
 			string name = param.Count > 0 ? param[0] : string.Empty;
 			if (string.IsNullOrEmpty(name))
 				name = "mesh";
-			var mesh = context.CreateNewMesh(name);
-			context.meshDict.Add(mesh.name, mesh);
-			context.currentMesh = mesh;
+			model.SwitchMesh(name, true);
 		}
 	}
 
-    public class ObjCommand_usemtl : IObjCommand
-    {
-        public void Execute(List<string> param, ObjCommandContext context)
-        {
-            if(param.Count>0){
-                context.currentMesh.SwitchFaceList(param[0], true);
-            }
-        }
-    }
+	public class ObjCommand_usemtl : IObjCommand
+	{
+		public void Execute(List<string> param, ObjModel model)
+		{
+			if (param.Count > 0)
+			{
+				model.CurrentMesh.SwitchFaceList(param[0], true);
+			}
+		}
+	}
 }
