@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace WavefrontObjSharp
+namespace WavefrontObjSharp.Test
 {
-	class Test
-	{
+	class Program
+    {
 		static void Main(string[] args)
 		{
 			//Console.WriteLine(string.Join(", ", args));

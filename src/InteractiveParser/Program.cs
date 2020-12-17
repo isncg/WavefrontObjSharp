@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace WavefrontObjSharp
+namespace WavefrontObjSharp.InteractiveParser
 {
 	class Program
 	{
