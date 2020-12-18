@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <Compile Include="src\core\*.cs" />
+	<Compile Include="src\core\command\*.cs" />
     <Compile Include="src\Test\*.cs" />
   </ItemGroup>
 

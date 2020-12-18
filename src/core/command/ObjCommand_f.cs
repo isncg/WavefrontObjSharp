@@ -1,24 +1,7 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace WavefrontObjSharp
 {
-	public class ObjCommand_v : IObjCommand
-	{
-		public Vertex.Component Component { get; private set; }
-		public ObjCommand_v(Vertex.Component component)
-		{
-			Component = component;
-		}
-
-		public void Execute(List<string> param, ObjModel model)
-		{
-			var vec = Vector.Parse(param.ToArray());
-			model.CurrentMesh.data[(int)Component].Add(vec);
-		}
-	}
-
 	public class ObjCommand_f : IObjCommand
 	{
 		static bool VerifyVertex(Mesh mesh, Vertex vertex, ulong flag = 0)
@@ -82,41 +65,6 @@ namespace WavefrontObjSharp
 				if (model.CurrentMesh.vertexVaiidFlag == 0)
 					return;
 				AddNewFace(model.CurrentMesh, vertices);
-			}
-		}
-	}
-
-	public class UtilCommand_dump : IObjCommand
-	{
-		public void Execute(List<string> param, ObjModel model)
-		{
-			foreach (var kv in model.meshDict)
-			{
-				Console.WriteLine("mesh: " + kv.Key);
-				Console.WriteLine(Utils.Dump(model.CurrentMesh, "    "));
-			}
-		}
-	}
-
-
-	public class ObjCommand_o : IObjCommand
-	{
-		public void Execute(List<string> param, ObjModel model)
-		{
-			string name = param.Count > 0 ? param[0] : string.Empty;
-			if (string.IsNullOrEmpty(name))
-				name = "mesh";
-			model.SwitchMesh(name, true);
-		}
-	}
-
-	public class ObjCommand_usemtl : IObjCommand
-	{
-		public void Execute(List<string> param, ObjModel model)
-		{
-			if (param.Count > 0)
-			{
-				model.CurrentMesh.SwitchFaceList(param[0], true);
 			}
 		}
 	}
