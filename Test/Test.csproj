@@ -1,14 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <Compile Include="src\core\*.cs" />
-	<Compile Include="src\core\command\*.cs" />
-    <Compile Include="src\Test\*.cs" />
+    <Compile Include="..\core\*.cs" />
+	  <Compile Include="..\core\command\*.cs" />
   </ItemGroup>
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+    <!-- <EnableDefaultCompileItems>False</EnableDefaultCompileItems> -->
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
