@@ -11,7 +11,8 @@ namespace WavefrontObjSharp.InteractiveParser
             foreach (var kv in model.meshDict)
             {
                 Console.WriteLine("mesh: " + kv.Key);
-                Console.WriteLine(Utils.Dump(model.CurrentMesh, "    "));
+                string[] names = param.Count > 0 ? param.ToArray() : null;
+                Console.WriteLine(Utils.Dump(model.CurrentMesh, "    ", names));
             }
         }
     }

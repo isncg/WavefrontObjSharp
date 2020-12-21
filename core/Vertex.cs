@@ -6,19 +6,9 @@ namespace WavefrontObjSharp
 {
     public class Vertex: IEquatable<Vertex>
     {
-        public enum Component
-        {
-            Position = 0,
-            UV = 1,
-            Noraml = 2,
-            Color = 3,
-            //---------//
-            Count = 4
-        }
         public int[] compIndex;
-        public Vertex()
+        public Vertex(int componentCount)
         {
-            int componentCount = (int)Component.Count;
             compIndex = new int[componentCount];
             for (int i = 0; i < componentCount; i++)
                 compIndex[i] = -1;
@@ -27,8 +17,7 @@ namespace WavefrontObjSharp
         public ulong GetValidFlag()
         {
             ulong result = 0;
-            int componentCount = (int)Component.Count;
-            for (int i = 0; i < componentCount; i++)
+            for (int i = 0; i < compIndex.Length; i++)
             {
                 if (compIndex[i] >= 0)
                     result |= 1ul << i;
@@ -37,10 +26,10 @@ namespace WavefrontObjSharp
         }
 
 
-        public static Vertex Parse(string[] strs)
+        public static Vertex Parse(Mesh mesh,  string[] strs)
         {
-            Vertex vertex = new Vertex();
-            int componentCount = (int)Component.Count;
+            Vertex vertex = new Vertex(mesh.componentCount);
+            int componentCount = mesh.componentCount;
             int paramLen = strs.Length;
 
             for (int i = 0; i < componentCount; i++)
@@ -55,9 +44,9 @@ namespace WavefrontObjSharp
             return vertex;
         }
 
-        public static Vertex Parse(string str, string sp = "/")
+        public static Vertex Parse(Mesh mesh, string str, string sp = "/")
         {
-            return Parse(str.Split(sp));
+            return Parse(mesh, str.Split(sp));
         }
 
         public bool Equals(Vertex other)

@@ -4,16 +4,24 @@ namespace WavefrontObjSharp
 {
 	public class ObjCommand_v : IObjCommand
 	{
-		public Vertex.Component Component { get; private set; }
-		public ObjCommand_v(Vertex.Component component)
+		public string name { get; private set; }
+		public ObjCommand_v(string name)
 		{
-			Component = component;
+			this.name = name;
 		}
 
 		public void Execute(List<string> param, ObjModel model)
 		{
 			var vec = Vector.Parse(param.ToArray());
-			model.CurrentMesh.data[(int)Component].Add(vec);
+            if (!model.CurrentMesh.componentNames.Contains(name))
+            {
+				model.CurrentMesh.componentNames.Add(name);
+			}
+            if (!model.CurrentMesh.data.ContainsKey(name))
+            {
+				model.CurrentMesh.data[name] = new List<Vector>();
+            }
+			model.CurrentMesh.data[name].Add(vec);
 		}
 	}
 }

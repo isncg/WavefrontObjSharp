@@ -10,8 +10,9 @@ namespace WavefrontObjSharp
 				flag = mesh.vertexVaiidFlag;
 			if (vertex.GetValidFlag() != flag)
 				return false;
-			for (int i = 0; i < (int)Vertex.Component.Count; i++)
-				if (vertex.compIndex[i] >= mesh.data[i].Count)
+			int componentCount = mesh.componentCount;
+			for (int i = 0; i < componentCount; i++)
+				if (vertex.compIndex[i] >= mesh.data[mesh.componentNames[i]].Count)
 					return false;
 			return true;
 		}
@@ -57,7 +58,7 @@ namespace WavefrontObjSharp
 		}
 		public void Execute(List<string> param, ObjModel model)
 		{
-			var vertices = param.ConvertAll<Vertex>(str => Vertex.Parse(str));
+			var vertices = param.ConvertAll<Vertex>(str => Vertex.Parse(model.CurrentMesh, str));
 			if (vertices.Count > 0)
 			{
 				if (model.CurrentMesh.vertexVaiidFlag == 0)

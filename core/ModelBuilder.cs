@@ -13,7 +13,7 @@ namespace WavefrontObjSharp
 	public class Mesh
 	{
 		public string name = string.Empty;
-		public List<List<Vector>> data;
+		public Dictionary<string, List<Vector>> data;
 		public List<Vertex> corners;
 		public ulong vertexVaiidFlag = 0;
 		private List<Face> curFaceList = null;
@@ -32,7 +32,9 @@ namespace WavefrontObjSharp
 			}
 		}
 
-		public bool SwitchFaceList(string name, bool createIfNotExist = false)
+        public int componentCount { get { return componentNames.Count; } }
+
+        public bool SwitchFaceList(string name, bool createIfNotExist = false)
 		{
 			if (mtlFaceList.TryGetValue(name, out curFaceList))
 			{
@@ -47,16 +49,42 @@ namespace WavefrontObjSharp
 			return false;
 		}
 		public Dictionary<string, List<Face>> mtlFaceList = new Dictionary<string, List<Face>>();
-
+		public List<string> componentNames = new List<string>();
 		public Mesh()
 		{
-			data = new List<List<Vector>>((int)Vertex.Component.Count);
-			for (int i = 0; i < (int)Vertex.Component.Count; i++)
-			{
-				data.Add(new List<Vector>());
-			}
+			data = new Dictionary<string, List<Vector>>();//new List<List<Vector>>((int)Vertex.Component.Count);
+			//for (int i = 0; i < (int)Vertex.Component.Count; i++)
+			//{
+			//	data.Add(new List<Vector>());
+			//}
 			corners = new List<Vertex>();
 			curFaceList = new List<Face>();
 		}
+
+
+		public List<Vector[]> SelectVertexArray(string[] names = null)
+        {
+			List<Vector[]> result = new List<Vector[]>();
+			int count = 0;
+			if (names == null)
+				names = componentNames.ToArray();
+			foreach (var v in corners)
+            {
+				Vector[] vertex = new Vector[names.Length];
+				Vertex corner = corners[count];
+
+				for(int i = 0; i < vertex.Length; i++)
+                {
+					int nameIndex = componentNames.FindIndex(str => str == names[i]);
+					if (nameIndex >= 0)
+						vertex[i] = data[names[i]][corner.compIndex[nameIndex]];
+					else
+						vertex[i] = null;
+                }
+				count++;
+				result.Add(vertex);
+            }
+			return result;
+        }
 	}
 }

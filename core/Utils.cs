@@ -20,23 +20,37 @@ namespace WavefrontObjSharp
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append("[");
-			for (int i = 0; i < (int)Vertex.Component.Count; i++)
+			int count = vertex.compIndex.Length;
+			for (int i = 0; i < count; i++)
 			{
-				sb.Append(string.Format("<{0}:{1}>", (Vertex.Component)i, vertex.compIndex[i]));
+				sb.Append(string.Format("<{0}>", vertex.compIndex[i]));
 			}
 			sb.Append("]");
 			return sb.ToString();
 		}
 
-		public static string Dump(this Mesh mesh, string indent = "")
+		public static string Dump(this Mesh mesh, string indent = "", string[] selectNames = null)
 		{
 			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < (int)Vertex.Component.Count; i++)
+			int count = mesh.componentCount;
+			for (int i = 0; i < count; i++)
 			{
-				sb.Append(string.Format("[{0}]:\n{1}\n", (Vertex.Component)i, Dump(mesh.data[i], indent)));
+				sb.Append(string.Format("[{0}]:\n{1}\n", mesh.componentNames[i], Dump(mesh.data[mesh.componentNames[i]], indent)));
 			}
+			var vertexArray = mesh.SelectVertexArray(selectNames);
+			foreach(var v in vertexArray)
+            {
+				foreach(var e in v)
+                {
+					sb.Append(e.Dump());
+                }
+				sb.Append("\n");
+            }
+
 			return sb.ToString();
 		}
+
+		
 
 		public static Vec2 Vec2(this Vector vector)
 		{
