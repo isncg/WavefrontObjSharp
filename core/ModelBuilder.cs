@@ -32,9 +32,9 @@ namespace WavefrontObjSharp
 			}
 		}
 
-        public int componentCount { get { return componentNames.Count; } }
+		public int componentCount { get { return componentNames.Count; } }
 
-        public bool SwitchFaceList(string name, bool createIfNotExist = false)
+		public bool SwitchFaceList(string name, bool createIfNotExist = false)
 		{
 			if (mtlFaceList.TryGetValue(name, out curFaceList))
 			{
@@ -53,38 +53,50 @@ namespace WavefrontObjSharp
 		public Mesh()
 		{
 			data = new Dictionary<string, List<Vector>>();//new List<List<Vector>>((int)Vertex.Component.Count);
-			//for (int i = 0; i < (int)Vertex.Component.Count; i++)
-			//{
-			//	data.Add(new List<Vector>());
-			//}
+														  //for (int i = 0; i < (int)Vertex.Component.Count; i++)
+														  //{
+														  //	data.Add(new List<Vector>());
+														  //}
 			corners = new List<Vertex>();
 			curFaceList = new List<Face>();
 		}
 
 
-		public List<Vector[]> SelectVertexArray(string[] names = null)
-        {
+		public List<Vector[]> CreateVectorArrayList(string[] componentNames = null)
+		{
 			List<Vector[]> result = new List<Vector[]>();
-			int count = 0;
-			if (names == null)
-				names = componentNames.ToArray();
-			foreach (var v in corners)
-            {
-				Vector[] vertex = new Vector[names.Length];
-				Vertex corner = corners[count];
+			int cornerCount = corners.Count;
+			if (componentNames == null)
+				componentNames = this.componentNames.ToArray();
+			int vectorRowLength = componentNames.Length;
+			for (int cornerIndex = 0; cornerIndex < cornerCount; cornerIndex++)
+			{
+				Vector[] vectorRow = new Vector[vectorRowLength];
+				Vertex corner = corners[cornerIndex];
 
-				for(int i = 0; i < vertex.Length; i++)
-                {
-					int nameIndex = componentNames.FindIndex(str => str == names[i]);
-					if (nameIndex >= 0)
-						vertex[i] = data[names[i]][corner.compIndex[nameIndex]];
+				for (int i = 0; i < vectorRow.Length; i++)
+				{
+					string componentName = componentNames[i];
+					int nameIndex = this.componentNames.FindIndex(str => str == componentName);
+					if (nameIndex >= 0 && nameIndex<corner.compIndex.Length)
+					{
+						int componentIndex = corner.compIndex[nameIndex];
+						var componentList = data[componentName];
+						if(componentIndex>=0 && componentIndex < componentList.Count)
+                        {
+							vectorRow[i] = componentList[componentIndex];
+						}
+                        else
+                        {
+							vectorRow[i] = null;
+                        }
+					}
 					else
-						vertex[i] = null;
-                }
-				count++;
-				result.Add(vertex);
-            }
+						vectorRow[i] = null;
+				}
+				result.Add(vectorRow);
+			}
 			return result;
-        }
+		}
 	}
 }

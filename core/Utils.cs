@@ -8,6 +8,8 @@ namespace WavefrontObjSharp
 	{
 		public static string Dump(this Vector vector)
 		{
+			if (vector == null)
+				return "<null>";
 			return string.Format("<{0}>", string.Join(", ", new List<float>(vector.v).ConvertAll(v => string.Format("{0,9}", v))));
 		}
 
@@ -32,12 +34,12 @@ namespace WavefrontObjSharp
 		public static string Dump(this Mesh mesh, string indent = "", string[] selectNames = null)
 		{
 			StringBuilder sb = new StringBuilder();
-			int count = mesh.componentCount;
-			for (int i = 0; i < count; i++)
+			int componentCount = mesh.componentCount;
+			for (int i = 0; i < componentCount; i++)
 			{
 				sb.Append(string.Format("[{0}]:\n{1}\n", mesh.componentNames[i], Dump(mesh.data[mesh.componentNames[i]], indent)));
 			}
-			var vertexArray = mesh.SelectVertexArray(selectNames);
+			var vertexArray = mesh.CreateVectorArrayList(selectNames);
 			foreach(var v in vertexArray)
             {
 				foreach(var e in v)
