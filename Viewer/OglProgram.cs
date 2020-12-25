@@ -7,6 +7,16 @@ namespace Viewer
 {
     class OglProgram
     {
+        public enum CommonVertexAttribute
+        {
+            pos3f = 1,
+            norm3f = 2,
+            uv02f = 4,
+            uv12f = 8,
+            color4f = 16
+        }
+
+
         private Dictionary<uint, ShaderFile> shaderFiles = new Dictionary<uint, ShaderFile>();
 
         public uint Program { get; private set; } = 0;
