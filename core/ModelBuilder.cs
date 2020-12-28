@@ -16,19 +16,19 @@ namespace WavefrontObjSharp
 		public Dictionary<string, List<Vector>> data;
 		public List<Vertex> corners;
 		public ulong vertexVaiidFlag = 0;
-		private List<Face> curFaceList = null;
-		public List<Face> CurFaceList
+		private List<Face> curMtlFaceList = null;
+		public List<Face> CurMtlFaceList
 		{
 			get
 			{
-				if (curFaceList != null) return curFaceList;
+				if (curMtlFaceList != null) return curMtlFaceList;
 				string defaultName = string.Empty;
-				if (!mtlFaceList.TryGetValue(defaultName, out curFaceList))
+				if (!MtlFaceDict.TryGetValue(defaultName, out curMtlFaceList))
 				{
-					curFaceList = new List<Face>();
-					mtlFaceList[defaultName] = curFaceList;
+					curMtlFaceList = new List<Face>();
+					MtlFaceDict[defaultName] = curMtlFaceList;
 				}
-				return curFaceList;
+				return curMtlFaceList;
 			}
 		}
 
@@ -36,29 +36,25 @@ namespace WavefrontObjSharp
 
 		public bool SwitchFaceList(string name, bool createIfNotExist = false)
 		{
-			if (mtlFaceList.TryGetValue(name, out curFaceList))
+			if (MtlFaceDict.TryGetValue(name, out curMtlFaceList))
 			{
 				return true;
 			}
 			if (createIfNotExist)
 			{
-				curFaceList = new List<Face>();
-				mtlFaceList[name] = curFaceList;
+				curMtlFaceList = new List<Face>();
+				MtlFaceDict[name] = curMtlFaceList;
 				return true;
 			}
 			return false;
 		}
-		public Dictionary<string, List<Face>> mtlFaceList = new Dictionary<string, List<Face>>();
+		public Dictionary<string, List<Face>> MtlFaceDict = new Dictionary<string, List<Face>>();
 		public List<string> componentNames = new List<string>();
 		public Mesh()
 		{
-			data = new Dictionary<string, List<Vector>>();//new List<List<Vector>>((int)Vertex.Component.Count);
-														  //for (int i = 0; i < (int)Vertex.Component.Count; i++)
-														  //{
-														  //	data.Add(new List<Vector>());
-														  //}
+			data = new Dictionary<string, List<Vector>>();
 			corners = new List<Vertex>();
-			curFaceList = new List<Face>();
+			curMtlFaceList = null;
 		}
 
 

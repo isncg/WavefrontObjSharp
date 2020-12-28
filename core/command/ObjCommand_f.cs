@@ -45,7 +45,7 @@ namespace WavefrontObjSharp
 						return false;
 				string defaultFaceName = string.Empty;
 
-				mesh.CurFaceList.Add(new Face
+				mesh.CurMtlFaceList.Add(new Face
 				{
 					cornerIndices = vertices.ConvertAll(
 						vertex => GetCornerIndex(mesh, vertex)).ToArray()
@@ -58,7 +58,16 @@ namespace WavefrontObjSharp
 		}
 		public void Execute(List<string> param, ObjModel model)
 		{
-			var vertices = param.ConvertAll<Vertex>(str => Vertex.Parse(model.CurrentMesh, str));
+			var vertices = param.ConvertAll<Vertex>(
+                (str) => {
+					var vertex = Vertex.Parse(model.CurrentMesh, str);
+					for(int i = 0; i < vertex.compIndex.Length; i++)
+                    {
+						vertex.compIndex[i] -= 1;
+                    }
+					return vertex;
+				}
+			);
 			if (vertices.Count > 0)
 			{
 				if (model.CurrentMesh.vertexVaiidFlag == 0)

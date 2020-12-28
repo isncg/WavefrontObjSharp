@@ -78,6 +78,23 @@ namespace WavefrontObjSharp
 				sb.Append("\n");
             }
 
+			foreach(var kv in mesh.MtlFaceDict)
+            {
+				sb.Append(string.Format("[mtl {0} idx]\n", kv.Key));
+				List<int> triangleIndices = new List<int>();
+				foreach(var face in kv.Value)
+                {
+					int len = face.cornerIndices.Length;
+					for(int i = 2;i< len; i++)
+                    {
+						triangleIndices.Add(face.cornerIndices[i - 2]);
+						triangleIndices.Add(face.cornerIndices[i - 1]);
+						triangleIndices.Add(face.cornerIndices[i]);
+					}
+                }
+				sb.Append(string.Format("    [{0}] [{1}]\n", triangleIndices.Count, string.Join(", ", triangleIndices)));
+            }
+
 			return sb.ToString();
 		}
 
