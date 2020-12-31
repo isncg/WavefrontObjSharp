@@ -7,28 +7,7 @@ namespace WavefrontObjSharp.Test
     {
         static void Main(string[] args)
         {
-            var dir = Directory.GetCurrentDirectory();
-            while (!File.Exists(dir + "/data/test.obj"))
-            {
-                DirectoryInfo dirInfo = Directory.GetParent(dir);
-                if (dirInfo == null)
-                {
-                    Console.WriteLine("Search end at dir" + dir);
-                    return;
-                }
-                dir = dirInfo.FullName;
-            }
-            StreamReader reader = null;
-            try
-            {
-                reader = File.OpenText(dir + "/data/test.obj");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(
-                    string.Format("Cannot open file {0}, {1}", args[0], e.Message)
-                );
-            }
+            var reader = Utils.GetStreamReader("/data/test.obj");
             if (reader == null)
                 return;
             Parser parser = new Parser();

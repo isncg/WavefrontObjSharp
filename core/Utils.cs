@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace WavefrontObjSharp
@@ -113,6 +114,40 @@ namespace WavefrontObjSharp
 		public static Vec4 Vec4(this Vector vector)
 		{
 			return new Vec4 { vec = vector };
+		}
+
+
+		public static StreamReader GetStreamReader(string path)
+		{
+			var dir = Directory.GetCurrentDirectory();
+            if (path == null || path.Length < 1)
+            {
+				return null;
+            }
+			if(path[0]!='\\' && path[0] != '/')
+            {
+				path = "/" + path;
+            }
+			while (!File.Exists(dir + path))
+			{
+				DirectoryInfo dirInfo = Directory.GetParent(dir);
+				if (dirInfo == null)
+				{
+					Console.WriteLine("Search end at dir" + dir);
+					return null;
+				}
+				dir = dirInfo.FullName;
+			}
+			StreamReader reader = null;
+			try
+			{
+				reader = File.OpenText(dir + path);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(string.Format("Cannot open file {0}:{1}", dir + path, e.Message));
+			}
+			return reader;
 		}
 	}
 }
