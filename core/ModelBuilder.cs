@@ -94,5 +94,23 @@ namespace WavefrontObjSharp
 			}
 			return result;
 		}
+
+		public uint[] GetTriangleIndices(string matName)
+        {
+			var faceList = MtlFaceDict[matName];
+			List<uint> triangleIndices = new List<uint>();
+			foreach (var face in faceList)
+			{
+				int len = face.cornerIndices.Length;
+				for (int i = 2; i < len; i++)
+				{
+					triangleIndices.Add((uint)face.cornerIndices[i - 2]);
+					triangleIndices.Add((uint)face.cornerIndices[i - 1]);
+					triangleIndices.Add((uint)face.cornerIndices[i]);
+				}
+			}
+			return triangleIndices.ToArray();
+		}
+
 	}
 }

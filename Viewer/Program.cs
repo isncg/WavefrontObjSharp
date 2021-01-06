@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using GLFW;
+using WavefrontObjSharp;
 using static OpenGL.Gl;
 
 
@@ -12,6 +13,26 @@ namespace Viewer
         static OglProgram.UniformValueFloat3 uniformValue = new OglProgram.UniformValueFloat3();
         static void Main(string[] args)
         {
+            var reader = Utils.GetStreamReader("/data/test.obj");
+            if (reader == null)
+                return;
+
+            Parser parser = new Parser();
+            parser.Configure(option =>
+            {
+                option.AddCommand("v", new ObjCommand_v("v"));
+                option.AddCommand("vn", new ObjCommand_v("vn"));
+                option.AddCommand("vt", new ObjCommand_v("vt"));
+                option.AddCommand("f", new ObjCommand_f());
+                option.AddCommand("o", new ObjCommand_o());
+                if (reader != null)
+                    option.SetInput(reader.ReadLine);
+            });
+
+            var model = parser.Run();
+            var mesh = model.CurrentMesh;
+            var vectorArrayList = mesh.CreateVectorArrayList(new string[] { "v" });
+            var triangleIndices = mesh.GetTriangleIndices(string.Empty);
             // Set context creation hints
             PrepareContext();
             // Create a window and shader program
@@ -25,12 +46,12 @@ namespace Viewer
             }); //CreateProgram();
 
             var vertexArray = new OglVertexArray().Init((option) => {
-                option
-                .Add3F(-0.5f, -0.5f, 0.0f)
-                .Add3F(0.5f, -0.5f, 0.0f)
-                .Add3F(0.0f, 0.5f, 0.0f)
+                foreach(var v in vectorArrayList)
+                {
+                    option.Add3F(v[0].v[0], v[0].v[1], v[0].v[2]);
+                }
                 
-                .AddAttribute(0, 3, GL_FLOAT, false, 3 * sizeof(float));
+                option.AddAttribute(0, 3, GL_FLOAT, false, 3 * sizeof(float));
             });
             vertexArray.Bind();
             rand = new Random();
@@ -50,7 +71,8 @@ namespace Viewer
                     SetRandomColor(program);
 
                 // Draw the triangle.
-                glDrawArrays(GL_TRIANGLES, 0, 3);
+                //glDrawArrays(GL_TRIANGLES, 0, 3);
+                glDrawElements(GL_TRIANGLES, triangleIndices);
             }
 
             Glfw.Terminate();

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using OpenGL;
+using WavefrontObjSharp;
+
 namespace Viewer
 {
     class OglProgram
@@ -46,7 +48,14 @@ namespace Viewer
                 Program = Gl.glCreateProgram();
                 foreach(var kv in shaderFiles)
                 {
-                    var shader = CreateShader((int)kv.Key, File.ReadAllText(kv.Value.filename));
+                    var reader = Utils.GetStreamReader(kv.Value.filename);
+                    if(reader == null)
+                    {
+                        Console.WriteLine("Cannot open file " + kv.Value.filename);
+                        return false;
+                    }
+                    var glsl = reader.ReadToEnd();
+                    var shader = CreateShader((int)kv.Key, glsl);
                     shaders.Add(shader);
                     Gl.glAttachShader(Program, shader);
                 }
