@@ -21,5 +21,6 @@
   <ItemGroup>
     <Compile Include="..\core\*.cs" />
     <Compile Include="..\core\command\*.cs" />
+    <Compile Include="..\core\math\*.cs" />
   </ItemGroup>
 </Project>
