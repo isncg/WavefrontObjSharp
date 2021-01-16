@@ -199,40 +199,42 @@ namespace WavefrontObjSharp
 
     public class Matrix3x3 : FloatBuffer
     {
-        public Vector3f[] rowVectors = null;
-        public Vector3f[] colVectors = null;
+        public Vector3f[] rows = null;
+        public Vector3f[] cols = null;
         public Matrix3x3() {
             buffer = new float[9];
-            rowVectors = new Vector3f[3]
-            {
-                new Vector3f(buffer,0,1,2),
-                new Vector3f(buffer,3,4,5),
-                new Vector3f(buffer,6,7,8),
-            };
-            colVectors = new Vector3f[3]
+            rows = new Vector3f[3]
             {
                 new Vector3f(buffer,0,3,6),
                 new Vector3f(buffer,1,4,7),
                 new Vector3f(buffer,2,5,8),
             };
+            cols = new Vector3f[3]
+            {
+                new Vector3f(buffer,0,1,2),
+                new Vector3f(buffer,3,4,5),
+                new Vector3f(buffer,6,7,8),
+            };
         }
-        public float M11 { get { return buffer[0]; } set { buffer[0] = value; } }
-        public float M12 { get { return buffer[1]; } set { buffer[1] = value; } }
-        public float M13 { get { return buffer[2]; } set { buffer[2] = value; } }
-        public float M21 { get { return buffer[3]; } set { buffer[3] = value; } }
-        public float M22 { get { return buffer[4]; } set { buffer[4] = value; } }
-        public float M23 { get { return buffer[5]; } set { buffer[5] = value; } }
-        public float M31 { get { return buffer[6]; } set { buffer[6] = value; } }
-        public float M32 { get { return buffer[7]; } set { buffer[7] = value; } }
-        public float M33 { get { return buffer[8]; } set { buffer[8] = value; } }
 
+        public float this[int i, int j]
+        {
+            get
+            {
+                return rows[i][j];
+            }
+            set
+            {
+                rows[i][j] = value;
+            }
+        }
         public static Matrix3x3 Mul(Matrix3x3 l, Matrix3x3 r, Matrix3x3 result = null)
         {
             if (result == null)
                 result = new Matrix3x3();
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
-                    result.rowVectors[i][j] = l.rowVectors[i] * r.colVectors[j];
+                    result.rows[i][j] = l.rows[i] * r.cols[j];
             return result;
         }
 
@@ -249,9 +251,9 @@ namespace WavefrontObjSharp
         {
             if (result == null)
                 result = new Vector3f();
-            result[0] = l.rowVectors[0] * r;
-            result[1] = l.rowVectors[1] * r;
-            result[2] = l.rowVectors[2] * r;
+            result[0] = l.rows[0] * r;
+            result[1] = l.rows[1] * r;
+            result[2] = l.rows[2] * r;
             return result;
         }
 
@@ -275,13 +277,13 @@ namespace WavefrontObjSharp
             return Mul(l, r);
         }
 
-        public static Matrix3x3 E(float e = 1, Matrix3x3 result = null)
+        public static Matrix3x3 I(float e = 1, Matrix3x3 result = null)
         {
             if (result == null)
                 result = new Matrix3x3();
             for (int i = 0; i < 3; i++)
                 for (int j = 0; j < 3; j++)
-                    result.colVectors[i][j] = i == j ? e : 0;
+                    result[i,j] = i == j ? e : 0;
 
             return result;
         }
@@ -289,42 +291,39 @@ namespace WavefrontObjSharp
 
     public class Matrix4x4: FloatBuffer
     {
-        public Vector4f[] rowVectors = null;
-        public Vector4f[] colVectors = null;
+        public Vector4f[] rows = null;
+        public Vector4f[] cols = null;
         public Matrix4x4() {
             buffer = new float[16];
-            rowVectors = new Vector4f[4]
-            {
-                new Vector4f(buffer,0,1,2,3),
-                new Vector4f(buffer,4,5,6,7),
-                new Vector4f(buffer,8,9,10,11),
-                new Vector4f(buffer,12,13,14,15)
-            };
-
-            colVectors = new Vector4f[4]
+            rows = new Vector4f[4]
             {
                 new Vector4f(buffer,0,4,8,12),
                 new Vector4f(buffer,1,5,9,13),
                 new Vector4f(buffer,2,6,10,14),
                 new Vector4f(buffer,3,7,11,15)
             };
+
+            cols = new Vector4f[4]
+            {
+                new Vector4f(buffer,0,1,2,3),
+                new Vector4f(buffer,4,5,6,7),
+                new Vector4f(buffer,8,9,10,11),
+                new Vector4f(buffer,12,13,14,15)
+            };
         }
-        public float M11 { get { return buffer[0]; } set { buffer[0] = value; } }
-        public float M12 { get { return buffer[1]; } set { buffer[1] = value; } }
-        public float M13 { get { return buffer[2]; } set { buffer[2] = value; } }
-        public float M14 { get { return buffer[3]; } set { buffer[3] = value; } }
-        public float M21 { get { return buffer[4]; } set { buffer[4] = value; } }
-        public float M22 { get { return buffer[5]; } set { buffer[5] = value; } }
-        public float M23 { get { return buffer[6]; } set { buffer[6] = value; } }
-        public float M24 { get { return buffer[7]; } set { buffer[7] = value; } }
-        public float M31 { get { return buffer[8]; } set { buffer[8] = value; } }
-        public float M32 { get { return buffer[9]; } set { buffer[9] = value; } }
-        public float M33 { get { return buffer[10]; } set { buffer[10] = value; } }
-        public float M34 { get { return buffer[11]; } set { buffer[11] = value; } }
-        public float M41 { get { return buffer[12]; } set { buffer[12] = value; } }
-        public float M42 { get { return buffer[13]; } set { buffer[13] = value; } }
-        public float M43 { get { return buffer[14]; } set { buffer[14] = value; } }
-        public float M44 { get { return buffer[15]; } set { buffer[15] = value; } }
+
+        public float this[int i, int j]
+        {
+            get
+            {
+                return rows[i][j];
+            }
+            set
+            {
+                rows[i][j] = value;
+            }
+        }
+      
 
         public static Matrix4x4 Add(Matrix4x4 l, Matrix4x4 r, Matrix4x4 result = null)
         {
@@ -350,7 +349,7 @@ namespace WavefrontObjSharp
                 result = new Matrix4x4();
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
-                    result.rowVectors[i][j] = l.rowVectors[i] * r.colVectors[j];
+                    result[i,j] = l.rows[i] * r.cols[j];
             return result;
         }
 
@@ -367,10 +366,10 @@ namespace WavefrontObjSharp
         {
             if (result == null)
                 result = new Vector4f();
-            result[0] = l.rowVectors[0] * r;
-            result[1] = l.rowVectors[1] * r;
-            result[2] = l.rowVectors[2] * r;
-            result[3] = l.rowVectors[3] * r;
+            result[0] = l.rows[0] * r;
+            result[1] = l.rows[1] * r;
+            result[2] = l.rows[2] * r;
+            result[3] = l.rows[3] * r;
             return result;
         }
 
@@ -399,14 +398,14 @@ namespace WavefrontObjSharp
             return Mul(l, r);
         }
 
-        public static Matrix4x4 E(float e = 1, Matrix4x4 result = null)
+        public static Matrix4x4 I(float e = 1, Matrix4x4 result = null)
         {
             if (result == null)
                 result = new Matrix4x4();
 
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
-                    result.colVectors[i][j] = i == j ? e : 0;
+                    result[i,j] = i == j ? e : 0;
 
             return result;
         }
