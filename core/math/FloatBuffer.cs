@@ -1,5 +1,23 @@
+using System;
+
 namespace WavefrontObjSharp
 {
+    public static class MathUtils
+    {
+        //
+        // 计算参数x的平方根的倒数
+        //
+        public static unsafe float InvSqrt(float x)
+        {
+            float xhalf = 0.5f * x;
+            int i = *(int*)&x;
+            i = 0x5f3759df - (i >> 1);  // 计算第一个近似根
+            x = *(float*)&i;
+            x = x * (1.5f - xhalf * x * x); // 牛顿迭代法
+            return x;
+        }
+    }
+
     public class FloatBuffer
     {
         public unsafe class Info
@@ -48,8 +66,26 @@ namespace WavefrontObjSharp
         public float X { get { return buffer[px]; } set { buffer[px] = value; } }
         public float Y { get { return buffer[py]; } set { buffer[py] = value; } }
         public float Z { get { return buffer[pz]; } set { buffer[pz] = value; } }
+        public Vector3f Normalized(Vector3f result = null)
+        {
+            if (result == null)
+                result = new Vector3f();
+            float invMag = MathUtils.InvSqrt(this * this);
+            result.X = X * invMag;
+            result.Y = Y * invMag;
+            result.Z = Z * invMag;
+            return result;
+        }
 
-      
+        public static Vector3f Create(float x, float y, float z, Vector3f result = null)
+        {
+            if (result == null)
+                result = new Vector3f();
+            result.X = x;
+            result.Y = y;
+            result.Z = z;
+            return result;
+        }
 
         public static Vector3f Add(Vector3f l, Vector3f r, Vector3f result = null)
         {
@@ -68,6 +104,16 @@ namespace WavefrontObjSharp
             result.X = l.X - r.X;
             result.Y = l.Y - r.Y;
             result.Z = l.Z - r.Z;
+            return result;
+        }
+
+        public static Vector3f Minus(Vector3f r, Vector3f result = null)
+        {
+            if (result == null)
+                result = new Vector3f();
+            result.X = - r.X;
+            result.Y = - r.Y;
+            result.Z = - r.Z;
             return result;
         }
 
@@ -99,6 +145,11 @@ namespace WavefrontObjSharp
         public static Vector3f operator -(Vector3f l, Vector3f r)
         {
             return Sub(l, r);
+        }
+
+        public static Vector3f operator -(Vector3f r)
+        {
+            return Minus(r);
         }
 
         public static float operator *(Vector3f l, Vector3f r)
@@ -160,6 +211,18 @@ namespace WavefrontObjSharp
             return result;
         }
 
+
+        public static Vector4f Minus(Vector4f r, Vector4f result = null)
+        {
+            if (result == null)
+                result = new Vector4f();
+            result.X = -r.X;
+            result.Y = -r.Y;
+            result.Z = -r.Z;
+            result.W = -r.W;
+            return result;
+        }
+
         public static Vector4f Mul(Vector4f l, float r, Vector4f result = null)
         {
             if (result == null)
@@ -179,6 +242,11 @@ namespace WavefrontObjSharp
         public static Vector4f operator -(Vector4f l, Vector4f r)
         {
             return Sub(l, r);
+        }
+
+        public static Vector4f operator -(Vector4f r)
+        {
+            return Minus(r);
         }
 
         public static float operator *(Vector4f l, Vector4f r)
@@ -406,6 +474,30 @@ namespace WavefrontObjSharp
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
                     result[i,j] = i == j ? e : 0;
+
+            return result;
+        }
+    }
+
+
+    public static class Matrix
+    {
+        public static Matrix4x4 LookAt(Vector3f eye, Vector3f center, Vector3f up, Matrix4x4 result = null)
+        {
+            if (result == null)
+                result = new Matrix4x4();
+            Vector3f forward = (center - eye).Normalized();
+            Vector3f right = Vector3f.Cross(forward, up).Normalized();
+            up = Vector3f.Cross(right, forward).Normalized();
+
+            Vector3f originPos = -Vector3f.Create(eye * right, eye * up, eye * forward);
+            result.rows[0].Set(right, originPos.X);
+            result.rows[1].Set(up, originPos.Y);
+            result.rows[2].Set(forward, originPos.Z);
+            result.rows[3][0] = 0;
+            result.rows[3][1] = 0;
+            result.rows[3][2] = 0;
+            result.rows[3][3] = 1;
 
             return result;
         }
