@@ -51,7 +51,7 @@ namespace WavefrontObjSharp
             return info;
         }
         protected float[] buffer = null;
-        public float[] GetArray() { return buffer; }
+        public virtual float[] GetArray() { return buffer; }
         //public float this[int index]
         //{
         //    get
@@ -67,13 +67,20 @@ namespace WavefrontObjSharp
 
     public class Vector3f : FloatBuffer
     {
-        private int px, py, pz;
-        public Vector3f() { buffer = new float[3]; px = 0; py = 1; pz = 2; }
-        public Vector3f(float x, float y, float z) { buffer = new float[3] { x, y, z }; px = 0; py = 1; pz = 2; }
-        public Vector3f(float[] buffer, int px, int py, int pz) { this.buffer = buffer; this.px = px; this.py = py; this.pz = pz; }
+        bool useExternalBuffer = false;
+        private int px = 0, py = 1, pz = 2;
+        public Vector3f(float x = 0, float y = 0, float z = 0) { buffer = new float[3] { x, y, z }; }
+        public Vector3f(float[] buffer, int px, int py, int pz) { this.buffer = buffer; this.px = px; this.py = py; this.pz = pz; useExternalBuffer = true; }
         public float X { get { return buffer[px]; } set { buffer[px] = value; } }
         public float Y { get { return buffer[py]; } set { buffer[py] = value; } }
         public float Z { get { return buffer[pz]; } set { buffer[pz] = value; } }
+
+        public override float[] GetArray()
+        {
+            if (useExternalBuffer)
+                return new float[] { X, Y, Z };
+            return base.GetArray();
+        }
         public Vector3f Normalized(Vector3f result = null)
         {
             if (result == null)
@@ -178,15 +185,20 @@ namespace WavefrontObjSharp
 
     public class Vector4f : FloatBuffer
     {
-        private int px, py, pz, pw;
-        public Vector4f() { buffer = new float[4]; px = 0; py = 1; pz = 2; pw = 3; }
-        public Vector4f(float x, float y, float z, float w) { buffer = new float[4] { x, y, z, w }; px = 0; py = 1; pz = 2; pw = 3; }
-        public Vector4f(float[] buffer, int px, int py, int pz, int pw) { this.buffer = buffer; this.px = px; this.py = py; this.pz = pz; this.pw = pw; }
+        bool useExternalBuffer = false;
+        private int px = 0, py = 1, pz = 2, pw = 3;
+        public Vector4f(float x = 0, float y = 0, float z = 0, float w = 0) { buffer = new float[4] { x, y, z, w };}
+        public Vector4f(float[] buffer, int px, int py, int pz, int pw) { this.buffer = buffer; this.px = px; this.py = py; this.pz = pz; this.pw = pw; useExternalBuffer = true; }
         public float X { get { return buffer[px]; } set { buffer[px] = value; } }
         public float Y { get { return buffer[py]; } set { buffer[py] = value; } }
         public float Z { get { return buffer[pz]; } set { buffer[pz] = value; } }
         public float W { get { return buffer[pw]; } set { buffer[pw] = value; } }
-
+        public override float[] GetArray()
+        {
+            if (useExternalBuffer)
+                return new float[] { X, Y, Z, W };
+            return base.GetArray();
+        }
         public void Set(Vector4f xyzw)
         {
             X = xyzw.X; Y = xyzw.Y; Z = xyzw.Z; W = xyzw.W;
