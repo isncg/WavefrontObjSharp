@@ -10,7 +10,7 @@ namespace Viewer
 {
     class Program
     {
-        static OglProgram.UniformValueFloat3 uniformValue = new OglProgram.UniformValueFloat3();
+        static Vector3f uniformValue = new Vector3f();
         static void Main(string[] args)
         {
             var reader = Utils.GetStreamReader("/data/test.obj");
@@ -41,7 +41,6 @@ namespace Viewer
             {
                 option.AddShader(OglProgram.ShaderType.Vertex, "./triangle.vert");
                 option.AddShader(OglProgram.ShaderType.Fragment, "./triangle.frag");
-                option.AddUniform(OglProgram.Uniform.Type.Float3, "color");
                 option.CompileNow();
             }); //CreateProgram();
 
@@ -80,9 +79,9 @@ namespace Viewer
 
         static void SetRandomColor(OglProgram program)
         {
-            uniformValue.v0 = (float)rand.NextDouble();
-            uniformValue.v1 = (float)rand.NextDouble();
-            uniformValue.v2 = (float)rand.NextDouble();
+            uniformValue.X = (float)rand.NextDouble();
+            uniformValue.Y = (float)rand.NextDouble();
+            uniformValue.Z = (float)rand.NextDouble();
             program.SetUniform("color", uniformValue);
         }
 

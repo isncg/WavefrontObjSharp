@@ -4,16 +4,18 @@ namespace WavefrontObjSharp
 {
     public static class MathUtils
     {
-        //
-        // ¼ÆËã²ÎÊýxµÄÆ½·½¸ùµÄµ¹Êý
-        //
+        /// <summary>
+        /// å¿«é€Ÿå¹³æ–¹æ ¹å€’æ•°
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
         public static unsafe float InvSqrt(float x)
         {
             float xhalf = 0.5f * x;
             int i = *(int*)&x;
-            i = 0x5f3759df - (i >> 1);  // ¼ÆËãµÚÒ»¸ö½üËÆ¸ù
+            i = 0x5f3759df - (i >> 1);  // è®¡ç®—ç¬¬ä¸€ä¸ªè¿‘ä¼¼æ ¹
             x = *(float*)&i;
-            x = x * (1.5f - xhalf * x * x); // Å£¶Ùµü´ú·¨
+            x = x * (1.5f - xhalf * x * x); // ç‰›é¡¿è¿­ä»£æ³•
             return x;
         }
     }

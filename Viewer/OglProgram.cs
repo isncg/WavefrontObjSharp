@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.IO;
 using System.Text;
 using OpenGL;
@@ -42,14 +43,14 @@ namespace Viewer
 
         public bool Compile()
         {
-            if(Program <=0)
+            if (Program <= 0)
             {
                 List<uint> shaders = new List<uint>();
                 Program = Gl.glCreateProgram();
-                foreach(var kv in shaderFiles)
+                foreach (var kv in shaderFiles)
                 {
                     var reader = Utils.GetStreamReader(kv.Value.filename);
-                    if(reader == null)
+                    if (reader == null)
                     {
                         Console.WriteLine("Cannot open file " + kv.Value.filename);
                         return false;
@@ -60,16 +61,11 @@ namespace Viewer
                     Gl.glAttachShader(Program, shader);
                 }
                 Gl.glLinkProgram(Program);
-                foreach(var shader in shaders)
+                foreach (var shader in shaders)
                 {
                     Gl.glDeleteShader(shader);
                 }
                 Gl.glUseProgram(Program);
-                foreach(var kv in uniforms)
-                {
-                    var location = Gl.glGetUniformLocation(Program, kv.Key);
-                    kv.Value.location = location;
-                }
                 return true;
             }
             return false;
@@ -78,7 +74,7 @@ namespace Viewer
 
         public bool Use()
         {
-            if(!Compile())
+            if (!Compile())
             {
                 Gl.glUseProgram(Program);
             }
@@ -89,7 +85,7 @@ namespace Viewer
         {
             private OglProgram oglProgram;
             public bool IsCompileNow { get; private set; } = false;
-            
+
             public InitOption(OglProgram oglProgram)
             {
                 this.oglProgram = oglProgram;
@@ -103,11 +99,6 @@ namespace Viewer
             public void CompileNow(bool compileNow = true)
             {
                 this.IsCompileNow = compileNow;
-            }
-
-            public void AddUniform(Uniform.Type type, string name)
-            {
-                this.oglProgram.uniforms[name] = new Uniform { type = type};
             }
         }
 
@@ -127,48 +118,66 @@ namespace Viewer
         }
 
 
-        public class Uniform
+        public abstract class Uniform
         {
-            public enum Type
+            [StructLayout(LayoutKind.Explicit)]
+            protected struct Cache
             {
-                Float3
+                [FieldOffset(0)]
+                public FloatBuffer.Info bufferInfo;
             }
-            public Type type;
+            public string name = null;
             public int location = -1;
-            //public string name = null;
+            protected Cache cache = new Cache();
+            private bool isCacheInitialized = false;
+            public abstract void ApplyCache();
+            public Uniform Apply(FloatBuffer data)
+            {
+                if (cache.bufferInfo == null || !isCacheInitialized)
+                {
+                    cache.bufferInfo = new FloatBuffer.Info();
+                    isCacheInitialized = true;
+                }
+                data.GetBufferInfo(cache.bufferInfo);
+                ApplyCache();
+                return this;
+            }
         }
 
-        public void SetUniform(string name, UniformValue value)
+        public Dictionary<string, Uniform> uniformInfoDict = new Dictionary<string, Uniform>();
+
+        public Uniform GetUniformInfo<T>(string name) where T : Uniform, new()
         {
-            if(this.uniforms.TryGetValue(name, out var uniform))
+            Uniform result = null;
+            if (!uniformInfoDict.TryGetValue(name, out result))
             {
-                value.Apply(uniform);
+                int location = Gl.glGetUniformLocation(this.Program, name);
+                if (location < 0)
+                {
+                    //TODO: can not locate uniform error
+                    return null;
+                }
+                result = new T
+                {
+                    name = name,
+                    location = location
+                };
+                uniformInfoDict[name] = result;
             }
+            return result;
         }
 
-        public abstract class UniformValue {
-            protected abstract Uniform.Type Type { get; }
-            protected abstract void ApplyToUniform(Uniform uniform);
 
-            public void Apply(Uniform uniform)
-            {
-                if (uniform.type == Type)
-                    ApplyToUniform(uniform);
-            }
-        }
+        public class Uniform_Vector3f : Uniform { public override unsafe void ApplyCache() => Gl.glUniform3fv(location, 1, cache.bufferInfo.pointer); }
+        public Uniform SetUniform(string name, Vector3f value) => GetUniformInfo<Uniform_Vector3f>(name)?.Apply(value);
 
-        public class UniformValueFloat3 : UniformValue
-        {            
-            public float v0, v1,v2;
-         
-            protected override Uniform.Type Type => Uniform.Type.Float3;
+        public class Uniform_Vector4f : Uniform { public override unsafe void ApplyCache() => Gl.glUniform4fv(location, 1, cache.bufferInfo.pointer); }
+        public Uniform SetUniform(string name, Vector4f value) => GetUniformInfo<Uniform_Vector4f>(name)?.Apply(value);
 
-            protected override void ApplyToUniform(Uniform uniform)
-            {
-                Gl.glUniform3f(uniform.location, v0, v1, v2);
-            }
-        }
+        public class Uniform_Matrix3x3 : Uniform { public override unsafe void ApplyCache() => Gl.glUniformMatrix3fv(location, 1, false, cache.bufferInfo.pointer); }
+        public Uniform SetUniform(string name, Matrix3x3 value) => GetUniformInfo<Uniform_Matrix3x3>(name)?.Apply(value);
 
-        public Dictionary<string, Uniform> uniforms = new Dictionary<string, Uniform>();
+        public class Uniform_Matrix4x4 : Uniform { public override unsafe void ApplyCache() => Gl.glUniformMatrix4fv(location, 1, false, cache.bufferInfo.pointer); }
+        public Uniform SetUniform(string name, Matrix4x4 value) => GetUniformInfo<Uniform_Matrix4x4>(name)?.Apply(value);
     }
 }
