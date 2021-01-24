@@ -104,7 +104,7 @@ namespace WavefrontObjSharp
 				int len = face.cornerIndices.Length;
 				for (int i = 2; i < len; i++)
 				{
-					triangleIndices.Add((uint)face.cornerIndices[i - 2]);
+					triangleIndices.Add((uint)face.cornerIndices[0]);
 					triangleIndices.Add((uint)face.cornerIndices[i - 1]);
 					triangleIndices.Add((uint)face.cornerIndices[i]);
 				}

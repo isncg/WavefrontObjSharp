@@ -11,6 +11,8 @@ namespace Viewer
     class Program
     {
         static Vector3f uniformValue = new Vector3f();
+        static Matrix4x4 lookat = Matrix.LookAt(new Vector3f(2, 3, 5), new Vector3f(0, 0, 0), new Vector3f(0, 1, 0));
+        static Matrix4x4 perspective = Matrix.Perspective(60, 1, 0.1f, 100);
         static void Main(string[] args)
         {
             var reader = Utils.GetStreamReader("/data/test.obj");
@@ -54,7 +56,17 @@ namespace Viewer
             });
             vertexArray.Bind();
             rand = new Random();
+            var mvp = perspective * lookat; //Matrix4x4.I();
             SetRandomColor(program);
+            program.SetUniform("mvp", mvp);
+
+            var t1 = new Vector4f(-1, -1, -1, 1);
+            var t2 = new Vector4f(1, 1, 1, 1);
+            var t1r = lookat * t1;
+            var t2r = lookat * t2;
+
+            var err = GetError();
+            Console.WriteLine(err);
             long n = 0;
 
             while (!Glfw.WindowShouldClose(window))

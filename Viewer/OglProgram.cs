@@ -59,8 +59,11 @@ namespace Viewer
                     var shader = CreateShader((int)kv.Key, glsl);
                     shaders.Add(shader);
                     Gl.glAttachShader(Program, shader);
+                    Console.WriteLine(string.Format("create shader {0} = {1}, err = {2}", kv.Value.filename, shader, Gl.GetError()));
                 }
                 Gl.glLinkProgram(Program);
+                var filenames =  string.Join(",", new List<ShaderFile>(shaderFiles.Values).ConvertAll(f=>f.filename));
+                Console.WriteLine(string.Format("link shader {0} [{1}] err={2}", Program, filenames, Gl.GetError()));
                 foreach (var shader in shaders)
                 {
                     Gl.glDeleteShader(shader);

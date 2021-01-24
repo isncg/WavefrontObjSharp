@@ -18,6 +18,11 @@ namespace WavefrontObjSharp
             x = x * (1.5f - xhalf * x * x); // 牛顿迭代法
             return x;
         }
+
+        public static float Radians(float angle)
+        {
+            return angle * 180 / MathF.PI;
+        }
     }
 
     public class FloatBuffer
@@ -47,23 +52,24 @@ namespace WavefrontObjSharp
         }
         protected float[] buffer = null;
         public float[] GetArray() { return buffer; }
-        public float this[int index]
-        {
-            get
-            {
-                return buffer[index];
-            }
-            set
-            {
-                buffer[index] = value;
-            }
-        }
+        //public float this[int index]
+        //{
+        //    get
+        //    {
+        //        return buffer[index];
+        //    }
+        //    set
+        //    {
+        //        buffer[index] = value;
+        //    }
+        //}
     }
 
-    public class Vector3f: FloatBuffer
+    public class Vector3f : FloatBuffer
     {
         private int px, py, pz;
-        public Vector3f() { buffer = new float[3]; px = 0;py = 1;pz = 2; }
+        public Vector3f() { buffer = new float[3]; px = 0; py = 1; pz = 2; }
+        public Vector3f(float x, float y, float z) { buffer = new float[3] { x, y, z }; px = 0; py = 1; pz = 2; }
         public Vector3f(float[] buffer, int px, int py, int pz) { this.buffer = buffer; this.px = px; this.py = py; this.pz = pz; }
         public float X { get { return buffer[px]; } set { buffer[px] = value; } }
         public float Y { get { return buffer[py]; } set { buffer[py] = value; } }
@@ -113,9 +119,9 @@ namespace WavefrontObjSharp
         {
             if (result == null)
                 result = new Vector3f();
-            result.X = - r.X;
-            result.Y = - r.Y;
-            result.Z = - r.Z;
+            result.X = -r.X;
+            result.Y = -r.Y;
+            result.Z = -r.Z;
             return result;
         }
 
@@ -139,7 +145,7 @@ namespace WavefrontObjSharp
             return result;
         }
 
-        public static Vector3f operator+(Vector3f l, Vector3f r)
+        public static Vector3f operator +(Vector3f l, Vector3f r)
         {
             return Add(l, r);
         }
@@ -170,10 +176,11 @@ namespace WavefrontObjSharp
         }
     }
 
-    public class Vector4f: FloatBuffer
+    public class Vector4f : FloatBuffer
     {
-        private int px, py, pz,pw;
+        private int px, py, pz, pw;
         public Vector4f() { buffer = new float[4]; px = 0; py = 1; pz = 2; pw = 3; }
+        public Vector4f(float x, float y, float z, float w) { buffer = new float[4] { x, y, z, w }; px = 0; py = 1; pz = 2; pw = 3; }
         public Vector4f(float[] buffer, int px, int py, int pz, int pw) { this.buffer = buffer; this.px = px; this.py = py; this.pz = pz; this.pw = pw; }
         public float X { get { return buffer[px]; } set { buffer[px] = value; } }
         public float Y { get { return buffer[py]; } set { buffer[py] = value; } }
@@ -189,7 +196,7 @@ namespace WavefrontObjSharp
         {
             X = xyz.X; Y = xyz.Y; Z = xyz.Z; W = w;
         }
-       
+
 
         public static Vector4f Add(Vector4f l, Vector4f r, Vector4f result = null)
         {
@@ -271,7 +278,8 @@ namespace WavefrontObjSharp
     {
         public Vector3f[] rows = null;
         public Vector3f[] cols = null;
-        public Matrix3x3() {
+        public Matrix3x3()
+        {
             buffer = new float[9];
             rows = new Vector3f[3]
             {
@@ -291,11 +299,11 @@ namespace WavefrontObjSharp
         {
             get
             {
-                return rows[i][j];
+                return this.buffer[j * 3 + i];
             }
             set
             {
-                rows[i][j] = value;
+                this.buffer[j * 3 + i] = value;
             }
         }
         public static Matrix3x3 Mul(Matrix3x3 l, Matrix3x3 r, Matrix3x3 result = null)
@@ -304,7 +312,7 @@ namespace WavefrontObjSharp
                 result = new Matrix3x3();
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
-                    result.rows[i][j] = l.rows[i] * r.cols[j];
+                    result[i, j] = l.rows[i] * r.cols[j];
             return result;
         }
 
@@ -313,7 +321,7 @@ namespace WavefrontObjSharp
             if (result == null)
                 result = new Matrix3x3();
             for (int i = 0; i < 9; i++)
-                result[i] = l[i] * r;
+                result.buffer[i] = l.buffer[i] * r;
             return result;
         }
 
@@ -321,13 +329,13 @@ namespace WavefrontObjSharp
         {
             if (result == null)
                 result = new Vector3f();
-            result[0] = l.rows[0] * r;
-            result[1] = l.rows[1] * r;
-            result[2] = l.rows[2] * r;
+            result.X = l.rows[0] * r;
+            result.Y = l.rows[1] * r;
+            result.Z = l.rows[2] * r;
             return result;
         }
 
-        public static Matrix3x3 operator*(Matrix3x3 l, Matrix3x3 r)
+        public static Matrix3x3 operator *(Matrix3x3 l, Matrix3x3 r)
         {
             return Mul(l, r);
         }
@@ -342,7 +350,7 @@ namespace WavefrontObjSharp
             return Mul(r, l);
         }
 
-        public static Vector3f operator*(Matrix3x3 l, Vector3f r)
+        public static Vector3f operator *(Matrix3x3 l, Vector3f r)
         {
             return Mul(l, r);
         }
@@ -353,17 +361,18 @@ namespace WavefrontObjSharp
                 result = new Matrix3x3();
             for (int i = 0; i < 3; i++)
                 for (int j = 0; j < 3; j++)
-                    result[i,j] = i == j ? e : 0;
+                    result[i, j] = (i == j ? e : 0);
 
             return result;
         }
     }
 
-    public class Matrix4x4: FloatBuffer
+    public class Matrix4x4 : FloatBuffer
     {
         public Vector4f[] rows = null;
         public Vector4f[] cols = null;
-        public Matrix4x4() {
+        public Matrix4x4()
+        {
             buffer = new float[16];
             rows = new Vector4f[4]
             {
@@ -386,21 +395,21 @@ namespace WavefrontObjSharp
         {
             get
             {
-                return rows[i][j];
+                return this.buffer[j * 4 + i];
             }
             set
             {
-                rows[i][j] = value;
+                this.buffer[j * 4 + i] = value;
             }
         }
-      
+
 
         public static Matrix4x4 Add(Matrix4x4 l, Matrix4x4 r, Matrix4x4 result = null)
         {
             if (result == null)
                 result = new Matrix4x4();
             for (int i = 0; i < 16; i++)
-                result[i] = l[i] + r[i];
+                result.buffer[i] = l.buffer[i] + r.buffer[i];
             return result;
         }
 
@@ -409,7 +418,7 @@ namespace WavefrontObjSharp
             if (result == null)
                 result = new Matrix4x4();
             for (int i = 0; i < 16; i++)
-                result[i] = l[i] - r[i];
+                result.buffer[i] = l.buffer[i] - r.buffer[i];
             return result;
         }
 
@@ -419,7 +428,7 @@ namespace WavefrontObjSharp
                 result = new Matrix4x4();
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
-                    result[i,j] = l.rows[i] * r.cols[j];
+                    result[i, j] = l.rows[i] * r.cols[j];
             return result;
         }
 
@@ -428,22 +437,22 @@ namespace WavefrontObjSharp
             if (result == null)
                 result = new Matrix4x4();
             for (int i = 0; i < 16; i++)
-                result[i] = l[i] * r;
+                result.buffer[i] = l.buffer[i] * r;
             return result;
         }
 
-        public static Vector4f Mul(Matrix4x4 l,  Vector4f r, Vector4f result = null)
+        public static Vector4f Mul(Matrix4x4 l, Vector4f r, Vector4f result = null)
         {
             if (result == null)
                 result = new Vector4f();
-            result[0] = l.rows[0] * r;
-            result[1] = l.rows[1] * r;
-            result[2] = l.rows[2] * r;
-            result[3] = l.rows[3] * r;
+            result.X = l.rows[0] * r;
+            result.Y = l.rows[1] * r;
+            result.Z = l.rows[2] * r;
+            result.W = l.rows[3] * r;
             return result;
         }
 
-        public static Matrix4x4 operator+(Matrix4x4 l, Matrix4x4 r)
+        public static Matrix4x4 operator +(Matrix4x4 l, Matrix4x4 r)
         {
             return Add(l, r);
         }
@@ -453,7 +462,7 @@ namespace WavefrontObjSharp
             return Sub(l, r);
         }
 
-        public static Matrix4x4 operator*(Matrix4x4 l, Matrix4x4 r)
+        public static Matrix4x4 operator *(Matrix4x4 l, Matrix4x4 r)
         {
             return Mul(l, r);
         }
@@ -475,7 +484,7 @@ namespace WavefrontObjSharp
 
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
-                    result[i,j] = i == j ? e : 0;
+                    result[i, j] = (i == j ? e : 0);
 
             return result;
         }
@@ -488,19 +497,58 @@ namespace WavefrontObjSharp
         {
             if (result == null)
                 result = new Matrix4x4();
-            Vector3f forward = (center - eye).Normalized();
-            Vector3f right = Vector3f.Cross(forward, up).Normalized();
-            up = Vector3f.Cross(right, forward).Normalized();
+            Vector3f f = (center - eye).Normalized();
+            Vector3f u = up.Normalized();
+            Vector3f s = Vector3f.Cross(f, u).Normalized();
+            u = Vector3f.Cross(s, f);
 
-            Vector3f originPos = -Vector3f.Create(eye * right, eye * up, eye * forward);
-            result.rows[0].Set(right, originPos.X);
-            result.rows[1].Set(up, originPos.Y);
-            result.rows[2].Set(forward, originPos.Z);
-            result.rows[3][0] = 0;
-            result.rows[3][1] = 0;
-            result.rows[3][2] = 0;
-            result.rows[3][3] = 1;
+            result[0, 0] = s.X;
+            result[0, 1] = s.Y;
+            result[0, 2] = s.Z;
+            result[0, 3] = -s * eye;
 
+            result[1, 0] = u.X;
+            result[1, 1] = u.Y;
+            result[1, 2] = u.Z;
+            result[1, 3] = -u * eye;
+
+            result[2, 0] = -f.X;
+            result[2, 1] = -f.Y;
+            result[2, 2] = -f.Z;
+            result[2, 3] = f * eye;
+
+            result[3, 0] = 0;
+            result[3, 1] = 0;
+            result[3, 2] = 0;
+            result[3, 3] = 1;
+            //Vector3f originPos = -Vector3f.Create(eye * right, eye * up, eye * f);
+            //result.rows[0].Set(right, originPos.X);
+            //result.rows[1].Set(up, originPos.Y);
+            //result.rows[2].Set(f, originPos.Z);
+            //result[3, 0] = 0;
+            //result[3, 1] = 0;
+            //result[3, 2] = 0;
+            //result[3, 3] = 1;
+
+            return result;
+        }
+
+        public static Matrix4x4 Perspective(float fov, float aspect, float zNear, float zFar, Matrix4x4 result = null)
+        {
+            if (result == null)
+                result = new Matrix4x4();
+            float range = MathF.Tan(MathUtils.Radians(fov / 2)) * zNear;
+            float left = -range * aspect;
+            float right = range * aspect;
+            float bottom = -range;
+            float top = range;
+
+
+            result[0, 0] = (2 * zNear) / (right - left);
+            result[1, 1] = (2 * zNear) / (top - bottom);
+            result[2, 2] = -(zFar + zNear) / (zFar - zNear);
+            result[2, 3] = -(2 * zFar * zNear) / (zFar - zNear);
+            result[3, 2] = -1;
             return result;
         }
     }
