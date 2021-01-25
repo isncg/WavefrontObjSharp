@@ -12,14 +12,15 @@ namespace WavefrontObjSharp
 
 		public void Execute(List<string> param, ObjModel model)
 		{
-			var vec = Vector.Parse(param.ToArray());
-            if (!model.CurrentMesh.componentNames.Contains(name))
+			var vec = new ParamVector { values = param.ToArray() }; //Vector.Parse(param.ToArray());
+
+			if (!model.CurrentMesh.componentNames.Contains(name))
             {
 				model.CurrentMesh.componentNames.Add(name);
 			}
             if (!model.CurrentMesh.data.ContainsKey(name))
             {
-				model.CurrentMesh.data[name] = new List<Vector>();
+				model.CurrentMesh.data[name] = new List<ParamVector>();
             }
 			model.CurrentMesh.data[name].Add(vec);
 		}

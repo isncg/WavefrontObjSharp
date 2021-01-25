@@ -24,22 +24,22 @@ namespace WavefrontObjSharp
 			spaceStr[len] = result;
 			return result;
         }
-		public static string Dump(this Vector vector)
+		public static string Dump(this ParamVector vector)
 		{
 			if (vector == null)
 				return "<null>";
-			return string.Format("< {0} >", string.Join(", ", new List<float>(vector.v).ConvertAll(
+			return string.Format("< {0} >", string.Join(", ", new List<string>(vector.values).ConvertAll(
                 (v) => {
-					var str = string.Format("{0:####.000}", v);
+					var str = v;// string.Format("{0:####.000}", v);
 					int strlen = str.Length;
-					if (strlen < 8)
-						return GetSpaceStr(8 - strlen) + str;
+					if (strlen < 9)
+						return GetSpaceStr(9 - strlen) + str;
 					else
 						return str;
 				})));
 		}
 
-		public static string Dump(List<Vector> vector, string indent = "")
+		public static string Dump(List<ParamVector> vector, string indent = "")
 		{
 			return string.Join("\n", vector.ConvertAll((v => indent + v.Dump())));
 		}
@@ -98,25 +98,7 @@ namespace WavefrontObjSharp
 
 			return sb.ToString();
 		}
-
 		
-
-		public static Vec2 Vec2(this Vector vector)
-		{
-			return new Vec2 { vec = vector };
-		}
-
-		public static Vec3 Vec3(this Vector vector)
-		{
-			return new Vec3 { vec = vector };
-		}
-
-		public static Vec4 Vec4(this Vector vector)
-		{
-			return new Vec4 { vec = vector };
-		}
-
-
 		public static StreamReader GetStreamReader(string path)
 		{
 			var dir = Directory.GetCurrentDirectory();

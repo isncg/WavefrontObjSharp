@@ -13,7 +13,7 @@ namespace WavefrontObjSharp
 	public class Mesh
 	{
 		public string name = string.Empty;
-		public Dictionary<string, List<Vector>> data;
+		public Dictionary<string, List<ParamVector>> data;
 		public List<Vertex> corners;
 		public ulong vertexVaiidFlag = 0;
 		private List<Face> curMtlFaceList = null;
@@ -52,22 +52,22 @@ namespace WavefrontObjSharp
 		public List<string> componentNames = new List<string>();
 		public Mesh()
 		{
-			data = new Dictionary<string, List<Vector>>();
+			data = new Dictionary<string, List<ParamVector>>();
 			corners = new List<Vertex>();
 			curMtlFaceList = null;
 		}
 
 
-		public List<Vector[]> CreateVectorArrayList(string[] componentNames = null)
+		public List<ParamVector[]> CreateVectorArrayList(string[] componentNames = null)
 		{
-			List<Vector[]> result = new List<Vector[]>();
+			List<ParamVector[]> result = new List<ParamVector[]>();
 			int cornerCount = corners.Count;
 			if (componentNames == null)
 				componentNames = this.componentNames.ToArray();
 			int vectorRowLength = componentNames.Length;
 			for (int cornerIndex = 0; cornerIndex < cornerCount; cornerIndex++)
 			{
-				Vector[] vectorRow = new Vector[vectorRowLength];
+				ParamVector[] vectorRow = new ParamVector[vectorRowLength];
 				Vertex corner = corners[cornerIndex];
 
 				for (int i = 0; i < vectorRow.Length; i++)

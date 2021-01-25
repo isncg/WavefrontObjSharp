@@ -49,7 +49,7 @@ namespace Viewer
             var vertexArray = new OglVertexArray().Init((option) => {
                 foreach(var v in vectorArrayList)
                 {
-                    option.Add3F(v[0].v[0], v[0].v[1], v[0].v[2]);
+                    option.Add3F(v[0].values);
                 }
                 
                 option.AddAttribute(0, 3, GL_FLOAT, false, 3 * sizeof(float));

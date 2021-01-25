@@ -94,6 +94,19 @@ namespace Viewer
                 return this;
             }
 
+            public InitOption Add3F(string[] values)
+            {
+                bufferF[0] = 0;
+                bufferF[1] = 0;
+                bufferF[2] = 0;
+                for(int i=0;i<values.Length && i < 3; i++)
+                {
+                    float.TryParse(values[i], out bufferF[i]);
+                }
+                AddBytesF(sizeof(float) * 3);
+                return this;
+            }
+
             public unsafe InitOption AddAttribute(uint index, int size, int type, bool normalized, int stride)
             {
                 parent.attributes.Add(new VertexAttribute { index = index, size = size, type = type, normalized = normalized, stride = stride});
