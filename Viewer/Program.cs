@@ -33,7 +33,7 @@ namespace Viewer
 
             var model = parser.Run();
             var mesh = model.CurrentMesh;
-            var vectorArrayList = mesh.CreateVectorArrayList(new string[] { "v" });
+            var vectorArrayList = mesh.Select(new string[] { "v" });
             var triangleIndices = mesh.GetTriangleIndices(string.Empty);
             // Set context creation hints
             PrepareContext();
@@ -46,14 +46,22 @@ namespace Viewer
                 option.CompileNow();
             }); //CreateProgram();
 
-            var vertexArray = new OglVertexArray().Init((option) => {
-                foreach(var v in vectorArrayList)
-                {
-                    option.Add3F(v[0].values);
+            var vertexArray = new OglVertexArray().Init(
+                (option) => {
+                    option.AddAttribute(0, 3, GL_FLOAT, false, 3 * sizeof(float));
+                    //foreach(var v in vectorArrayList)
+                    //{
+                    //    option.Add3F(v[0].values);
+                    //}
+                },
+                (builder) => {
+                    foreach (var v in vectorArrayList)
+                    {
+                        var vertexAttributeValuesList = new List<ParamVector>(v).ConvertAll(e => e.values);
+                        builder.AddVertex(vertexAttributeValuesList);
+                    }
                 }
-                
-                option.AddAttribute(0, 3, GL_FLOAT, false, 3 * sizeof(float));
-            });
+            );
             vertexArray.Bind();
             rand = new Random();
             var mvp = perspective * lookat; //Matrix4x4.I();
