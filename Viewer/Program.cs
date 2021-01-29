@@ -33,7 +33,7 @@ namespace Viewer
 
             var model = parser.Run();
             var mesh = model.CurrentMesh;
-            var vectorArrayList = mesh.Select(new string[] { "v" });
+            var vectorArrayList = mesh.Select(new string[] { "v", "vn" });
             var triangleIndices = mesh.GetTriangleIndices(string.Empty);
             // Set context creation hints
             PrepareContext();
@@ -48,7 +48,11 @@ namespace Viewer
 
             var vertexArray = new OglVertexArray().Init(
                 (option) => {
-                    option.AddAttribute(0, 3, GL_FLOAT, false, 3 * sizeof(float));
+                    var vertexSize = 6 * sizeof(float);
+                    var posOffset = 0;
+                    var normOffset = 3 * sizeof(float);
+                    option.AddAttribute(0, 3, GL_FLOAT, false, vertexSize, posOffset);
+                    option.AddAttribute(1, 3, GL_FLOAT, false, vertexSize, normOffset);
                     //foreach(var v in vectorArrayList)
                     //{
                     //    option.Add3F(v[0].values);
@@ -68,15 +72,10 @@ namespace Viewer
             SetRandomColor(program);
             program.SetUniform("mvp", mvp);
 
-            var t1 = new Vector4f(-1, -1, -1, 1);
-            var t2 = new Vector4f(1, 1, 1, 1);
-            var t1r = lookat * t1;
-            var t2r = lookat * t2;
-
             var err = GetError();
             Console.WriteLine(err);
             long n = 0;
-
+            glEnable(GL_DEPTH_TEST);
             while (!Glfw.WindowShouldClose(window))
             {
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -84,7 +83,7 @@ namespace Viewer
                 Glfw.PollEvents();
 
                 // Clear the framebuffer to defined background color
-                glClear(GL_COLOR_BUFFER_BIT);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 if (n++ % 60 == 0)
                     SetRandomColor(program);
@@ -96,12 +95,18 @@ namespace Viewer
 
             Glfw.Terminate();
         }
-
+        static double radR = 0;
+        static double radG = Math.PI*2/3;
+        static double radB = Math.PI*4/3;
         static void SetRandomColor(OglProgram program)
         {
-            uniformValue.X = (float)rand.NextDouble();
-            uniformValue.Y = (float)rand.NextDouble();
-            uniformValue.Z = (float)rand.NextDouble();
+            radR += rand.NextDouble();
+            radG += rand.NextDouble();
+            radB += rand.NextDouble();
+
+            uniformValue.X = (float)(Math.Sin(radR*0.1) * 0.5 + 0.5);
+            uniformValue.Y = (float)(Math.Sin(radG*0.1) * 0.5 + 0.5);
+            uniformValue.Z = (float)(Math.Sin(radB*0.1) * 0.5 + 0.5);
             program.SetUniform("color", uniformValue);
         }
 

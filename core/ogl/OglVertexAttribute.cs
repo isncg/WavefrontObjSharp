@@ -5,4 +5,5 @@ class OglVertexAttribute
     public int type;
     public bool normalized;
     public int stride;
+    public int offset;
 }

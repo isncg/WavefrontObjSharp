@@ -57,7 +57,7 @@ namespace Viewer
             foreach(var attr in attributes)
             {
                 glEnableVertexAttribArray(attr.index);
-                glVertexAttribPointer(attr.index, attr.size, attr.type, attr.normalized, attr.stride, NULL);
+                glVertexAttribPointer(attr.index, attr.size, attr.type, attr.normalized, attr.stride, (void*)attr.offset);
             }
         }
         private List<OglVertexAttribute> attributes = new List<OglVertexAttribute>();

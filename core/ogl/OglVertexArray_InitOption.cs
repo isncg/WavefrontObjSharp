@@ -49,9 +49,9 @@ namespace Viewer
                 return this;
             }
 
-            public unsafe InitOption AddAttribute(uint index, int size, int type, bool normalized, int stride)
+            public unsafe InitOption AddAttribute(uint index, int size, int type, bool normalized, int stride, int offset)
             {
-                parent.attributes.Add(new OglVertexAttribute { index = index, size = size, type = type, normalized = normalized, stride = stride });
+                parent.attributes.Add(new OglVertexAttribute { index = index, size = size, type = type, normalized = normalized, stride = stride, offset = offset });
                 return this;
             }
         }
