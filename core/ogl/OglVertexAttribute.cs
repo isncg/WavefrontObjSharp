@@ -7,3 +7,9 @@ class OglVertexAttribute
     public int stride;
     public int offset;
 }
+
+public enum OglVertexAttributeType
+{
+    Float3,
+    Float4
+}

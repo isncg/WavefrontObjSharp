@@ -48,15 +48,9 @@ namespace Viewer
 
             var vertexArray = new OglVertexArray().Init(
                 (option) => {
-                    var vertexSize = 6 * sizeof(float);
-                    var posOffset = 0;
-                    var normOffset = 3 * sizeof(float);
-                    option.AddAttribute(0, 3, GL_FLOAT, false, vertexSize, posOffset);
-                    option.AddAttribute(1, 3, GL_FLOAT, false, vertexSize, normOffset);
-                    //foreach(var v in vectorArrayList)
-                    //{
-                    //    option.Add3F(v[0].values);
-                    //}
+                    option.SetAttribute(
+                        OglVertexAttributeType.Float3,
+                        OglVertexAttributeType.Float3);
                 },
                 (builder) => {
                     foreach (var v in vectorArrayList)
