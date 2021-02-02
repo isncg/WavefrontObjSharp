@@ -12,7 +12,33 @@ namespace Viewer
     {
         static Vector3f uniformValue = new Vector3f();
         static Matrix4x4 lookat = Matrix.LookAt(new Vector3f(2, 3, 5), new Vector3f(0, 0, 0), new Vector3f(0, 1, 0));
-        static Matrix4x4 perspective = Matrix.Perspective(60, 1, 0.1f, 100);
+        static Matrix4x4 perspective = Matrix.Perspective(60, 1.333f, 0.1f, 100);
+
+        static OglVertexArray create(Mesh mesh)
+        {
+            var meshVertices = mesh.Select(new string[] { "v", "vn" });
+            var triangleIndices = mesh.GetTriangleIndices(string.Empty);
+            var vertexArray = new OglVertexArray().Init(
+               (option) =>
+               {
+                   option.SetAttribute(
+                       OglVertexAttributeType.Float3,
+                       OglVertexAttributeType.Float3);
+               },
+               (builder) =>
+               {
+                   foreach (var v in meshVertices)
+                   {
+                       var vertexAttributeValuesList = new List<ParamVector>(v).ConvertAll(e => e.values);
+                       builder.AddVertex(vertexAttributeValuesList);
+                   }
+                   builder.AddIndices(OglVertexArray.Primitive.Type.Triangles, triangleIndices);
+               }
+           );
+            return vertexArray;
+        }
+
+
         static void Main(string[] args)
         {
             var reader = Utils.GetStreamReader("/data/test.obj");
@@ -32,35 +58,19 @@ namespace Viewer
             });
 
             var model = parser.Run();
-            var mesh = model.CurrentMesh;
-            var vectorArrayList = mesh.Select(new string[] { "v", "vn" });
-            var triangleIndices = mesh.GetTriangleIndices(string.Empty);
             // Set context creation hints
             PrepareContext();
             // Create a window and shader program
-            var window = CreateWindow(1024, 800);
+            var window = CreateWindow(800, 600);
             var program = new OglProgram().Init((option) =>
             {
                 option.AddShader(OglProgram.ShaderType.Vertex, "./triangle.vert");
                 option.AddShader(OglProgram.ShaderType.Fragment, "./triangle.frag");
                 option.CompileNow();
-            }); //CreateProgram();
+            });
 
-            var vertexArray = new OglVertexArray().Init(
-                (option) => {
-                    option.SetAttribute(
-                        OglVertexAttributeType.Float3,
-                        OglVertexAttributeType.Float3);
-                },
-                (builder) => {
-                    foreach (var v in vectorArrayList)
-                    {
-                        var vertexAttributeValuesList = new List<ParamVector>(v).ConvertAll(e => e.values);
-                        builder.AddVertex(vertexAttributeValuesList);
-                    }
-                }
-            );
-            vertexArray.Bind();
+            var vertexArrays = new List<Mesh>(model.meshDict.Values).ConvertAll(mesh=>create(mesh));
+
             rand = new Random();
             var mvp = perspective * lookat; //Matrix4x4.I();
             SetRandomColor(program);
@@ -83,8 +93,8 @@ namespace Viewer
                     SetRandomColor(program);
 
                 // Draw the triangle.
-                //glDrawArrays(GL_TRIANGLES, 0, 3);
-                glDrawElements(GL_TRIANGLES, triangleIndices);
+                foreach(var vertexArray in vertexArrays)
+                    vertexArray.Draw();
             }
 
             Glfw.Terminate();

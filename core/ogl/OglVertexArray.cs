@@ -13,6 +13,17 @@ namespace Viewer
         uint vao = 0;
         uint vbo = 0;
 
+        public class Primitive
+        {
+            public enum Type: int
+            {
+                Triangles = GL_TRIANGLES
+            }
+            public Type type;
+            public uint[] indices;
+        }
+        public List<Primitive> primitives = new List<Primitive>();
+
         public OglVertexArray Init(Action<InitOption> option, Action<VertexDataBuilder> builder)
         {
             if (option != null)
@@ -62,5 +73,11 @@ namespace Viewer
         }
         private List<OglVertexAttribute> attributes = new List<OglVertexAttribute>();
      
+        public void Draw()
+        {
+            Bind();
+            foreach (var primitive in primitives)
+                glDrawElements((int)primitive.type, primitive.indices);
+        }
     }
 }

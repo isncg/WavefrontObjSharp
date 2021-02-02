@@ -90,8 +90,12 @@ namespace Viewer
                         }
                     }
                 }
-            } 
+            }
 
+            public void AddIndices(Primitive.Type type, uint[] indices)
+            {
+                parent.primitives.Add(new Primitive { type = type, indices = indices });
+            }
         }
     }
 }
