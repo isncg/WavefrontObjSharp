@@ -41,7 +41,7 @@ namespace Viewer
 
         static void Main(string[] args)
         {
-            var reader = Utils.GetStreamReader("/data/test.obj");
+            var reader = Utils.GetStreamReader("/data/teapot.obj");
             if (reader == null)
                 return;
 
