@@ -52,17 +52,6 @@ namespace WavefrontObjSharp
         }
         protected float[] buffer = null;
         public virtual float[] GetArray() { return buffer; }
-        //public float this[int index]
-        //{
-        //    get
-        //    {
-        //        return buffer[index];
-        //    }
-        //    set
-        //    {
-        //        buffer[index] = value;
-        //    }
-        //}
     }
 
     public class Vector3f : FloatBuffer

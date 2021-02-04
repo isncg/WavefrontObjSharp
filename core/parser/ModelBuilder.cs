@@ -6,7 +6,7 @@ namespace WavefrontObjSharp
 {
     public class Face
     {
-        public int[] cornerIndices;
+        public int[] attributeIndices;
     }
 
 	public class Mesh
@@ -102,12 +102,12 @@ namespace WavefrontObjSharp
 			List<uint> triangleIndices = new List<uint>();
 			foreach (var face in faceList)
 			{
-				int len = face.cornerIndices.Length;
+				int len = face.attributeIndices.Length;
 				for (int i = 2; i < len; i++)
 				{
-					triangleIndices.Add((uint)face.cornerIndices[0]);
-					triangleIndices.Add((uint)face.cornerIndices[i - 1]);
-					triangleIndices.Add((uint)face.cornerIndices[i]);
+					triangleIndices.Add((uint)face.attributeIndices[0]);
+					triangleIndices.Add((uint)face.attributeIndices[i - 1]);
+					triangleIndices.Add((uint)face.attributeIndices[i]);
 				}
 			}
 			return triangleIndices.ToArray();

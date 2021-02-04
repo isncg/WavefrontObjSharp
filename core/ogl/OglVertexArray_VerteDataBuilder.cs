@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using static OpenGL.Gl;
 namespace Viewer
@@ -13,81 +14,42 @@ namespace Viewer
                 this.parent = parent;
             }
 
-            
-            unsafe List<byte> GetBytesF(string[] attribute, int elementCount)
-            {
-                int len = elementCount * sizeof(float);
-                var numbers = new float[elementCount];
-                var result = new byte[len];
-                for(int i = 0; i < len; i++)
-                {
-                    result[i] = 0;
-                }
-                for(int i = 0; i < elementCount; i++)
-                {
-                    numbers[i] = 0;
-                    if (i < attribute.Length)
-                    {
-                        float.TryParse(attribute[i], out numbers[i]);
-                    }
-                }
-                fixed(float* ptr = &numbers[0])
-                {
-                    byte* bptr = (byte*)ptr;
-                    
-                    for (int i = 0; i < len; i++)
-                    {
-                        result[i] = bptr[i];
-                    }
-                }
-                return new List<byte>(result);
-            }
-            unsafe List<byte> GetBytesI(string[] attribute, int elementCount)
-            {
-                int len = elementCount * sizeof(int);
-                var numbers = new int[elementCount];
-                var result = new byte[len];
-                for (int i = 0; i < len; i++)
-                {
-                    result[i] = 0;
-                }
-                for (int i = 0; i < elementCount; i++)
-                {
-                    numbers[i] = 0;
-                    if (i < attribute.Length)
-                    {
-                        int.TryParse(attribute[i], out numbers[i]);
-                    }
-                }
-                fixed (int* ptr = &numbers[0])
-                {
-                    byte* bptr = (byte*)ptr;
-
-                    for (int i = 0; i < len; i++)
-                    {
-                        result[i] = bptr[i];
-                    }
-                }
-                return new List<byte>(result);
-            }
-
-
             public void AddVertex(List<string[]> vertexAttributeValuesList)
             {
                 if(vertexAttributeValuesList.Count == parent.attributes.Count)
                 {
+                    var bytes = new Bytes();
                     for(int i = 0; i < vertexAttributeValuesList.Count; i++)
                     {
                         var size = parent.attributes[i].size;
                         var type = parent.attributes[i].type;
-                        if (type == GL_FLOAT)
+                        var strList = new List<string>(vertexAttributeValuesList[i]);
+                        while (strList.Count < size)
                         {
-                            buildResult.AddRange(GetBytesF(vertexAttributeValuesList[i], size));
+                            strList.Add("0");
                         }
+                        try
+                        {
+                            if (type == GL_FLOAT)
+                            {
+                                bytes.AddRange(strList.ConvertAll(v => float.Parse(v)));
+                            }
+                            else
+                            {
+                                bytes.AddRange(strList.ConvertAll(v => int.Parse(v)));
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                    }
+                    int count = bytes.Count;
+                    for(int i = 0; i < parent.vertexByteSize; i++)
+                    {
+                        if (i < count)
+                            buildResult.Add(bytes[i]);
                         else
-                        {
-                            buildResult.AddRange(GetBytesI(vertexAttributeValuesList[i], size));
-                        }
+                            buildResult.Add(0);
                     }
                 }
             }

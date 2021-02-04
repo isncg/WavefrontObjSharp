@@ -85,12 +85,12 @@ namespace WavefrontObjSharp
 				List<int> triangleIndices = new List<int>();
 				foreach(var face in kv.Value)
                 {
-					int len = face.cornerIndices.Length;
+					int len = face.attributeIndices.Length;
 					for(int i = 2;i< len; i++)
                     {
-						triangleIndices.Add(face.cornerIndices[i - 2]);
-						triangleIndices.Add(face.cornerIndices[i - 1]);
-						triangleIndices.Add(face.cornerIndices[i]);
+						triangleIndices.Add(face.attributeIndices[i - 2]);
+						triangleIndices.Add(face.attributeIndices[i - 1]);
+						triangleIndices.Add(face.attributeIndices[i]);
 					}
                 }
 				sb.Append(string.Format("    [{0}] [{1}]\n", triangleIndices.Count, string.Join(", ", triangleIndices)));

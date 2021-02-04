@@ -47,7 +47,7 @@ namespace WavefrontObjSharp
 
 				mesh.CurMtlFaceList.Add(new Face
 				{
-					cornerIndices = vertices.ConvertAll(
+					attributeIndices = vertices.ConvertAll(
 						vertex => GetCornerIndex(mesh, vertex)).ToArray()
 				});
 				if (mesh.vertexVaiidFlag == 0)

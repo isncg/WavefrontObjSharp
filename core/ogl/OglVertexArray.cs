@@ -30,7 +30,7 @@ namespace Viewer
             {
                 var initOption = new InitOption(this);
                 option(initOption);
-                data = initOption.databytes;
+                //data = initOption.databytes;
                 vao = 0;
                 vbo = 0;
             }
@@ -72,6 +72,7 @@ namespace Viewer
             }
         }
         private List<OglVertexAttribute> attributes = new List<OglVertexAttribute>();
+        private int vertexByteSize = 0;
      
         public void Draw()
         {
