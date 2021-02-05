@@ -11,8 +11,9 @@ namespace Viewer
     class Program
     {
         static Vector3f uniformValue = new Vector3f();
-        static Matrix4x4 lookat = Matrix.LookAt(new Vector3f(2, 3, 5), new Vector3f(0, 0, 0), new Vector3f(0, 1, 0));
-        static Matrix4x4 perspective = Matrix.Perspective(60, 1.333f, 0.1f, 100);
+        //static Matrix4x4 lookat = Matrix.LookAt(new Vector3f(2, 3, 5), new Vector3f(0, 0, 0), new Vector3f(0, 1, 0));
+        //static Matrix4x4 perspective = Matrix.Perspective(60, 1.333f, 0.1f, 100);
+        static Camera camera = new Camera();
 
         static OglVertexArray create(Mesh mesh)
         {
@@ -62,6 +63,8 @@ namespace Viewer
             PrepareContext();
             // Create a window and shader program
             var window = CreateWindow(800, 600);
+            var keyState = new GLFWKeyState();
+            keyState.Init(window);
             var program = new OglProgram().Init((option) =>
             {
                 option.AddShader(OglProgram.ShaderType.Vertex, "./triangle.vert");
@@ -72,7 +75,11 @@ namespace Viewer
             var vertexArrays = new List<Mesh>(model.meshDict.Values).ConvertAll(mesh=>create(mesh));
 
             rand = new Random();
-            var mvp = perspective * lookat; //Matrix4x4.I();
+            camera.param.position = new Vector3f(2, 3, 5);
+            camera.Update();
+            Matrix4x4 mvp = new Matrix4x4();
+            Matrix4x4.Mul(camera.perspective, camera.lookat, mvp);
+            //var mvp = camera.perspective * camera.lookat; //Matrix4x4.I();
             SetRandomColor(program);
             program.SetUniform("mvp", mvp);
 
@@ -92,9 +99,23 @@ namespace Viewer
                 if (n++ % 60 == 0)
                     SetRandomColor(program);
 
+                if (Input.GetKey(Keys.A))
+                    camera.param.position.X -= 0.2f;
+                if (Input.GetKey(Keys.D))
+                    camera.param.position.X += 0.2f;
+                if (Input.GetKey(Keys.W))
+                    camera.param.position.Z -= 0.2f;
+                if (Input.GetKey(Keys.S))
+                    camera.param.position.Z += 0.2f;
+
+                camera.Update();
+                Matrix4x4.Mul(camera.perspective, camera.lookat, mvp);
+                program.SetUniform("mvp", mvp);
+                program.Use();
                 // Draw the triangle.
-                foreach(var vertexArray in vertexArrays)
+                foreach (var vertexArray in vertexArrays)
                     vertexArray.Draw();
+                KeyState.current.FrameClear();
             }
 
             Glfw.Terminate();
