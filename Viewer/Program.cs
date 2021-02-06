@@ -14,7 +14,7 @@ namespace Viewer
         //static Matrix4x4 lookat = Matrix.LookAt(new Vector3f(2, 3, 5), new Vector3f(0, 0, 0), new Vector3f(0, 1, 0));
         //static Matrix4x4 perspective = Matrix.Perspective(60, 1.333f, 0.1f, 100);
         static Camera camera = new Camera();
-
+        static CameraFirstPersonController fpController = new CameraFirstPersonController();
         static OglVertexArray create(Mesh mesh)
         {
             var meshVertices = mesh.Select(new string[] { "v", "vn" });
@@ -65,6 +65,8 @@ namespace Viewer
             var window = CreateWindow(800, 600);
             var keyState = new GLFWKeyState();
             keyState.Init(window);
+            var mouseState = new GLFWMouseState();
+            mouseState.Init(window);
             var program = new OglProgram().Init((option) =>
             {
                 option.AddShader(OglProgram.ShaderType.Vertex, "./triangle.vert");
@@ -75,8 +77,10 @@ namespace Viewer
             var vertexArrays = new List<Mesh>(model.meshDict.Values).ConvertAll(mesh=>create(mesh));
 
             rand = new Random();
-            camera.param.position = new Vector3f(2, 3, 5);
+            camera.controller = fpController;//.param.position = new Vector3f(2, 3, 5);
             camera.Update();
+            var fpInput = new CameraFirstPersonController.InputHandler { controller = fpController, camera = camera};
+            fpInput.EnableMouseLook(true);
             Matrix4x4 mvp = new Matrix4x4();
             Matrix4x4.Mul(camera.perspective, camera.lookat, mvp);
             //var mvp = camera.perspective * camera.lookat; //Matrix4x4.I();
@@ -99,16 +103,9 @@ namespace Viewer
                 if (n++ % 60 == 0)
                     SetRandomColor(program);
 
-                if (Input.GetKey(Keys.A))
-                    camera.param.position.X -= 0.2f;
-                if (Input.GetKey(Keys.D))
-                    camera.param.position.X += 0.2f;
-                if (Input.GetKey(Keys.W))
-                    camera.param.position.Z -= 0.2f;
-                if (Input.GetKey(Keys.S))
-                    camera.param.position.Z += 0.2f;
 
-                camera.Update();
+                fpInput.Update();
+                //camera.Update();
                 Matrix4x4.Mul(camera.perspective, camera.lookat, mvp);
                 program.SetUniform("mvp", mvp);
                 program.Use();

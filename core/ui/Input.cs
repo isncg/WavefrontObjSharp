@@ -19,6 +19,18 @@ namespace WavefrontObjSharp
         {
             return KeyState.current != null && KeyState.current.frameKeyUp.Contains((int)keyCode);
         }
+
+        public static bool GetMousePos(out double x, out double y)
+        {
+            if (MouseState.current != null)
+            {
+                x = MouseState.current.x;
+                y = MouseState.current.y;
+                return true;
+            }
+            x = 0;y = 0;
+            return false;
+        }
     }
 
 
@@ -56,6 +68,14 @@ namespace WavefrontObjSharp
         }
     }
 
+    public class MouseState
+    {
+        public static MouseState current;
+        public double x;
+        public double y;
+        public virtual bool IsMouseHover() { return false; }
+    }
+
     public class GLFWKeyState : KeyState
     {
         GLFW.Window window;
@@ -80,8 +100,37 @@ namespace WavefrontObjSharp
         public void Init(GLFW.Window window)
         {
             this.window = window;
-            this.callback = new GLFW.KeyCallback(this.KeyCallback);
+            this.callback = new GLFW.KeyCallback(KeyCallback);
             GLFW.Glfw.SetKeyCallback(window, callback);
+            current = this;
+        }
+    }
+
+    public class GLFWMouseState: MouseState
+    {
+        GLFW.Window window;
+        GLFW.MouseCallback callback = null;
+        void MouseCallback(IntPtr window, double x, double y)
+        {
+            if(this.window == window)
+            {
+                this.x = x;
+                this.y = y;
+                //GLFW.Glfw.GetCursorPosition(this.window, out x, out y);
+            }
+        }
+
+        public override bool IsMouseHover()
+        {
+            return GLFW.Glfw.GetWindowAttribute(this.window, WindowAttribute.MouseHover);
+        }
+
+        public void Init(GLFW.Window window)
+        {
+            this.window = window;
+            this.callback = new MouseCallback(MouseCallback);
+            GLFW.Glfw.GetCursorPosition(window, out x, out y);
+            GLFW.Glfw.SetCursorPositionCallback(window, callback);
             current = this;
         }
     }

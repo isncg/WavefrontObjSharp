@@ -19,9 +19,11 @@ namespace WavefrontObjSharp
             return x;
         }
 
-        public static float Radians(float angle)
+        public static double A2R = Math.PI / 180;
+
+        public static double Radians(double angle)
         {
-            return angle * 180 / MathF.PI;
+            return angle * A2R;
         }
     }
 
@@ -63,6 +65,14 @@ namespace WavefrontObjSharp
         public float X { get { return buffer[px]; } set { buffer[px] = value; } }
         public float Y { get { return buffer[py]; } set { buffer[py] = value; } }
         public float Z { get { return buffer[pz]; } set { buffer[pz] = value; } }
+
+        public Vector3f Set(float x, float y, float z)
+        {
+            this.X = x;
+            this.Y = y;
+            this.Z = z;
+            return this;
+        }
 
         public override float[] GetArray()
         {
@@ -176,7 +186,7 @@ namespace WavefrontObjSharp
     {
         bool useExternalBuffer = false;
         private int px = 0, py = 1, pz = 2, pw = 3;
-        public Vector4f(float x = 0, float y = 0, float z = 0, float w = 0) { buffer = new float[4] { x, y, z, w };}
+        public Vector4f(float x = 0, float y = 0, float z = 0, float w = 0) { buffer = new float[4] { x, y, z, w }; }
         public Vector4f(float[] buffer, int px, int py, int pz, int pw) { this.buffer = buffer; this.px = px; this.py = py; this.pz = pz; this.pw = pw; useExternalBuffer = true; }
         public float X { get { return buffer[px]; } set { buffer[px] = value; } }
         public float Y { get { return buffer[py]; } set { buffer[py] = value; } }
@@ -522,15 +532,40 @@ namespace WavefrontObjSharp
             result[3, 1] = 0;
             result[3, 2] = 0;
             result[3, 3] = 1;
-            //Vector3f originPos = -Vector3f.Create(eye * right, eye * up, eye * f);
-            //result.rows[0].Set(right, originPos.X);
-            //result.rows[1].Set(up, originPos.Y);
-            //result.rows[2].Set(f, originPos.Z);
-            //result[3, 0] = 0;
-            //result[3, 1] = 0;
-            //result[3, 2] = 0;
-            //result[3, 3] = 1;
+            return result;
+        }
 
+        public static Matrix4x4 LookAround(Vector3f position, Vector3f direction, Vector3f up, Matrix4x4 result = null, Vector3f[] calcVec3Buffer3 = null)
+        {
+            if (result == null)
+                result = new Matrix4x4();
+            if (calcVec3Buffer3 == null || calcVec3Buffer3.Length < 3)
+                calcVec3Buffer3 = new Vector3f[3] { new Vector3f(), new Vector3f(), new Vector3f() };
+            direction = direction.Normalized(calcVec3Buffer3[0]);
+            Vector3f s = Vector3f.Cross(direction, up, calcVec3Buffer3[1]);
+            s.Normalized(s);
+            up = Vector3f.Cross(s, direction, calcVec3Buffer3[2]);
+            up.Normalized(up);
+
+            result[0, 0] = s.X;
+            result[0, 1] = s.Y;
+            result[0, 2] = s.Z;
+            result[0, 3] = -s * position;
+
+            result[1, 0] = up.X;
+            result[1, 1] = up.Y;
+            result[1, 2] = up.Z;
+            result[1, 3] = -up * position;
+
+            result[2, 0] = -direction.X;
+            result[2, 1] = -direction.Y;
+            result[2, 2] = -direction.Z;
+            result[2, 3] = direction * position;
+
+            result[3, 0] = 0;
+            result[3, 1] = 0;
+            result[3, 2] = 0;
+            result[3, 3] = 1;
             return result;
         }
 
@@ -538,7 +573,7 @@ namespace WavefrontObjSharp
         {
             if (result == null)
                 result = new Matrix4x4();
-            float range = MathF.Tan(MathUtils.Radians(fov / 2)) * zNear;
+            float range = (float)Math.Tan(MathUtils.Radians(fov / 2)) * zNear;
             float left = -range * aspect;
             float right = range * aspect;
             float bottom = -range;
