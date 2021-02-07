@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FreeImage-dotnet-core" Version="4.3.6" />
     <PackageReference Include="GLFW.NET.Natives" Version="1.0.1" />
     <PackageReference Include="System.Text.Json" Version="5.0.0" />
   </ItemGroup>

@@ -113,7 +113,7 @@ namespace Viewer
                     vertexArray.Draw();
                 KeyState.current.FrameClear();
                 Time.frameStatics.Update();
-                Console.Write(string.Format("\rFPS: {0}         ", Time.FilteredFps));
+                Console.Write(string.Format("\rFPS: {0}         \r", Time.FilteredFps));
             }
 
             Glfw.Terminate();
