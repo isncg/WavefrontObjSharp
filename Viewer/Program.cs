@@ -76,7 +76,6 @@ namespace Viewer
 
             var vertexArrays = new List<Mesh>(model.meshDict.Values).ConvertAll(mesh=>create(mesh));
 
-            rand = new Random();
             camera.controller = fpController;//.param.position = new Vector3f(2, 3, 5);
             camera.Update();
             var fpInput = new CameraFirstPersonController.InputHandler { controller = fpController, camera = camera};
@@ -113,22 +112,20 @@ namespace Viewer
                 foreach (var vertexArray in vertexArrays)
                     vertexArray.Draw();
                 KeyState.current.FrameClear();
+                Time.frameStatics.Update();
+                Console.Write(string.Format("\rFPS: {0}         ", Time.FilteredFps));
             }
 
             Glfw.Terminate();
         }
-        static double radR = 0;
-        static double radG = Math.PI*2/3;
-        static double radB = Math.PI*4/3;
+
         static void SetRandomColor(OglProgram program)
         {
-            radR += rand.NextDouble();
-            radG += rand.NextDouble();
-            radB += rand.NextDouble();
-
-            uniformValue.X = (float)(Math.Sin(radR*0.1) * 0.5 + 0.5);
-            uniformValue.Y = (float)(Math.Sin(radG*0.1) * 0.5 + 0.5);
-            uniformValue.Z = (float)(Math.Sin(radB*0.1) * 0.5 + 0.5);
+            double t = Time.RunningTime;
+           
+            uniformValue.X = (float)(Math.Sin(t) * 0.5 + 0.5);
+            uniformValue.Y = (float)(Math.Sin(t+Math.PI*2/3) * 0.5 + 0.5);
+            uniformValue.Z = (float)(Math.Sin(t+Math.PI*4/3) * 0.5 + 0.5);
             program.SetUniform("color", uniformValue);
         }
 
@@ -157,6 +154,5 @@ namespace Viewer
 
             return window;
         }            
-        private static Random rand;
     }
 }

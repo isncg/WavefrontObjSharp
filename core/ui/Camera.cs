@@ -44,7 +44,7 @@ namespace WavefrontObjSharp
         }
     }
 
-    public class CameraPerspectiveController: Camera.Controller
+    public class CameraPerspectiveController : Camera.Controller
     {
         public float fov = 60;
         public float aspect = 1.333f;
@@ -57,7 +57,7 @@ namespace WavefrontObjSharp
         }
     }
 
-    public class CameraLookatController: Camera.Controller
+    public class CameraLookatController : Camera.Controller
     {
         public Vector3f position = new Vector3f(0, 0, 10);
         public Vector3f center = new Vector3f();
@@ -73,11 +73,11 @@ namespace WavefrontObjSharp
         }
     }
 
-    public class CameraFirstPersonController:Camera.Controller
+    public class CameraFirstPersonController : Camera.Controller
     {
         public Vector3f position = new Vector3f(0, 0, 10);
-        public double heading=0;
-        public double pitch=0;
+        public double heading = 0;
+        public double pitch = 0;
         public CameraPerspectiveController perspectiveController = new CameraPerspectiveController();
         public float MouseSensitivityX = 0.5f;
         public float MouseSensitivityY = 0.5f;
@@ -86,32 +86,11 @@ namespace WavefrontObjSharp
         private Vector3f up = new Vector3f(0, 1, 0);
         private Vector3f[] cache = new Vector3f[] { new Vector3f(), new Vector3f(), new Vector3f() };
 
-        //public void Update()
-        //{
-        //    if (Input.GetKey(Keys.A))
-        //        fpController.position -= 0.2f * camera.GetRight();
-        //    if (Input.GetKey(Keys.D))
-        //        fpController.position += 0.2f * camera.GetRight();
-        //    if (Input.GetKey(Keys.W))
-        //        fpController.position += 0.2f * camera.GetForward();
-        //    if (Input.GetKey(Keys.S))
-        //        fpController.position -= 0.2f * camera.GetForward();
-
-        //    if (Input.GetKey(Keys.Up))
-        //        fpController.pitch += 1;
-        //    if (Input.GetKey(Keys.Down))
-        //        fpController.pitch -= 1;
-        //    if (Input.GetKey(Keys.Left))
-        //        fpController.heading -= 1;
-        //    if (Input.GetKey(Keys.Right))
-        //        fpController.heading += 1;
-        //}
-
         public void Setup(Camera camera)
         {
             dir.X = (float)(Math.Sin(MathUtils.Radians(heading)) * Math.Cos(MathUtils.Radians(pitch)));
             dir.Y = (float)Math.Sin(MathUtils.Radians(pitch));
-            dir.Z = (float)(-Math.Cos(MathUtils.Radians(heading) * Math.Cos(MathUtils.Radians(pitch))));
+            dir.Z = (float)(-Math.Cos(MathUtils.Radians(heading)) * Math.Cos(MathUtils.Radians(pitch)));
             Matrix.LookAround(position, dir, up, camera.lookat, cache);
 
             perspectiveController.Setup(camera);
@@ -147,30 +126,30 @@ namespace WavefrontObjSharp
             private double mouseBeginY = 0;
             private double mouseBeginPitch = 0;
             private double mouseBeginHeading = 0;
-            
+
             public void Update()
             {
                 if (Input.GetKey(Keys.A))
-                    controller.position -= 0.2f * camera.GetRight();
+                    controller.position -= 1f * Time.DeltaTime * camera.GetRight();
                 if (Input.GetKey(Keys.D))
-                    controller.position += 0.2f * camera.GetRight();
+                    controller.position += 1f * Time.DeltaTime * camera.GetRight();
                 if (Input.GetKey(Keys.W))
-                    controller.position += 0.2f * camera.GetForward();
+                    controller.position += 1f * Time.DeltaTime * camera.GetForward();
                 if (Input.GetKey(Keys.S))
-                    controller.position -= 0.2f * camera.GetForward();
+                    controller.position -= 1f * Time.DeltaTime * camera.GetForward();
 
                 if (Input.GetKey(Keys.Up))
-                    controller.pitch += 1;
+                    controller.pitch += 1 * Time.DeltaTime;
                 if (Input.GetKey(Keys.Down))
-                    controller.pitch -= 1;
+                    controller.pitch -= 1 * Time.DeltaTime;
                 if (Input.GetKey(Keys.Left))
-                    controller.heading -= 1;
+                    controller.heading -= 1 * Time.DeltaTime;
                 if (Input.GetKey(Keys.Right))
-                    controller.heading += 1;
+                    controller.heading += 1 * Time.DeltaTime;
 
                 if (mouseLookEnable)
                 {
-                    if(Input.GetKey(Keys.Up) || Input.GetKey(Keys.Down) || Input.GetKey(Keys.Left) || Input.GetKey(Keys.Right) || !MouseState.current.IsMouseHover())
+                    if (Input.GetKey(Keys.Up) || Input.GetKey(Keys.Down) || Input.GetKey(Keys.Left) || Input.GetKey(Keys.Right) || !MouseState.current.IsMouseHover())
                     {
                         StartTrackMousePos();
                     }
@@ -180,7 +159,6 @@ namespace WavefrontObjSharp
                         {
                             var dx = x - mouseBeginX;
                             var dy = y - mouseBeginY;
-                            Console.WriteLine(string.Format("Mouse pos dx:{0} dy:{1}", dx, dy));
                             controller.pitch = mouseBeginPitch - dy * controller.MouseSensitivityY;
                             controller.heading = mouseBeginHeading + dx * controller.MouseSensitivityX;
                             if (controller.pitch > 90)
