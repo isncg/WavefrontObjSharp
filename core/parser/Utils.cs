@@ -99,6 +99,30 @@ namespace WavefrontObjSharp
 			return sb.ToString();
 		}
 		
+        public static string GetDataFilePath(string path)
+        {
+            var dir = Directory.GetCurrentDirectory();
+            if (path == null || path.Length < 1)
+            {
+                return null;
+            }
+            if (path[0] != '\\' && path[0] != '/')
+            {
+                path = "/" + path;
+            }
+            while (!File.Exists(dir + path))
+            {
+                DirectoryInfo dirInfo = Directory.GetParent(dir);
+                if (dirInfo == null)
+                {
+                    Console.WriteLine("Search end at dir" + dir);
+                    return null;
+                }
+                dir = dirInfo.FullName;
+            }
+            return dir + path;
+        }
+
 		public static StreamReader GetStreamReader(string path)
 		{
 			var dir = Directory.GetCurrentDirectory();

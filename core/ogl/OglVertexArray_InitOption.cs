@@ -25,16 +25,9 @@ namespace Viewer
                     int bytesize = 0;
                     switch (attributeTypes[i])
                     {
-                        case OglVertexAttributeType.Float3:
-                            size = 3;
-                            type = Gl.GL_FLOAT;
-                            bytesize = 3 * sizeof(float);
-                            break;
-                        case OglVertexAttributeType.Float4:
-                            size = 4;
-                            type = Gl.GL_FLOAT;
-                            bytesize = 4 * sizeof(float);
-                            break;
+                        case OglVertexAttributeType.Float2:    size = 2;    type = Gl.GL_FLOAT;    bytesize = 2 * sizeof(float);    break;
+                        case OglVertexAttributeType.Float3:    size = 3;    type = Gl.GL_FLOAT;    bytesize = 3 * sizeof(float);    break;
+                        case OglVertexAttributeType.Float4:    size = 4;    type = Gl.GL_FLOAT;    bytesize = 4 * sizeof(float);    break;
                     }
                     var attr = new OglVertexAttribute { index = (uint)i, size = size, type = type, normalized = false, offset = offset };
                     offset += bytesize;

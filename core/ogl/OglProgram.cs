@@ -66,6 +66,7 @@ namespace Viewer
                 Console.WriteLine(string.Format("link shader {0} [{1}] err={2}", Program, filenames, Gl.GetError()));
                 foreach (var shader in shaders)
                 {
+                    Console.WriteLine(Gl.glGetShaderInfoLog(shader));
                     Gl.glDeleteShader(shader);
                 }
                 Gl.glUseProgram(Program);
@@ -123,11 +124,13 @@ namespace Viewer
 
         public abstract class Uniform
         {
-            [StructLayout(LayoutKind.Explicit)]
+            //[StructLayout(LayoutKind.Explicit)]
             protected struct Cache
             {
-                [FieldOffset(0)]
+                //[FieldOffset(0)]
                 public FloatBuffer.Info bufferInfo;
+                //[FieldOffset(0)]
+                public int textureUnit;
             }
             public string name = null;
             public int location = -1;
@@ -142,6 +145,13 @@ namespace Viewer
                     isCacheInitialized = true;
                 }
                 data.GetBufferInfo(cache.bufferInfo);
+                ApplyCache();
+                return this;
+            }
+
+            public Uniform Apply(Texture texture)
+            {
+                cache.textureUnit = texture.ActiveID;
                 ApplyCache();
                 return this;
             }
@@ -182,5 +192,9 @@ namespace Viewer
 
         public class Uniform_Matrix4x4 : Uniform { public override unsafe void ApplyCache() => Gl.glUniformMatrix4fv(location, 1, false, cache.bufferInfo.pointer); }
         public Uniform SetUniform(string name, Matrix4x4 value) => GetUniformInfo<Uniform_Matrix4x4>(name)?.Apply(value);
+
+        public class Uniform_Sampler : Uniform { public override void ApplyCache() => Gl.glUniform1i(location, cache.textureUnit); }
+        public Uniform SetUniform(string name, Texture value) => GetUniformInfo<Uniform_Sampler>(name)?.Apply(value);
+
     }
 }

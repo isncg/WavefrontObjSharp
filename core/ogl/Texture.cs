@@ -1,6 +1,7 @@
 using FreeImageAPI;
 using OpenGL;
 using System;
+using WavefrontObjSharp;
 
 public enum BaseInternalFormat: int
 {
@@ -153,10 +154,21 @@ public class ActiveTextures
         }
         set
         {
+            if (value != null)
+            {
+                Gl.glActiveTexture(index + Gl.GL_TEXTURE0);
+                Gl.glBindTexture(Gl.GL_TEXTURE_2D, value.textureID);
+            }
             activeTextures[index] = value;
-            Gl.glActiveTexture(index + Gl.GL_TEXTURE0);
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, value.textureID);
         }
+    }
+
+    public int Find(Texture texture)
+    {
+        for (int i = 0; i < activeTextures.Length; i++)
+            if (texture == activeTextures[i])
+                return i;
+        return -1;
     }
 
     static ActiveTextures instance = null;
@@ -174,13 +186,43 @@ public class ActiveTextures
 
 public class Texture
 {
-    public const int ActiveTextureCount = Gl.GL_ACTIVE_TEXTURE - Gl.GL_TEXTURE0;
 	public uint textureID;
+    public int ActiveID => ActiveTextures.textures.Find(this);
+    public int Activated()
+    {
+        int id = ActiveID;
+        if (id >= 0)
+            return id;
+        for(int i = 0; i < ActiveTextures.Count; i++)
+        {
+            if(null == ActiveTextures.textures[i])
+            {
+                ActiveTextures.textures[i] = this;
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public int Deactivated()
+    {
+        for(int i=0;i< ActiveTextures.Count; i++)
+        {
+            if(this == ActiveTextures.textures[i])
+            {
+                ActiveTextures.textures[i] = null;
+                return i;
+            }
+        }
+        return -1;
+    }
 
     public static unsafe Texture Create(string filename)
     {
-		//image format
-		FREE_IMAGE_FORMAT fif = FREE_IMAGE_FORMAT.FIF_UNKNOWN;
+        filename = Utils.GetDataFilePath(filename);
+        Console.WriteLine("Loading texture " + filename);
+        //image format
+        FREE_IMAGE_FORMAT fif = FREE_IMAGE_FORMAT.FIF_UNKNOWN;
 		//pointer to the image, once loaded
 		FIBITMAP dib = FIBITMAP.Zero;
 		//pointer to the image data
@@ -216,19 +258,41 @@ public class Texture
 		//if this somehow one of these failed (they shouldn't), return failure
 		if ((bits == IntPtr.Zero) || (width == 0) || (height == 0))
 			return null;
+        int pixelCount = width * height;
+        byte* p = (byte*)bits;
+        for (int i = 0; i < pixelCount; i++)
+        {
+            int k = i * 4;
+            byte t = p[k + 0];
+            p[k + 0] = p[k + 2];
+            p[k + 2] = t;
+        }
+
+        //int bytesize = pixelCount * 4;
+        //byte[] test = new byte[bytesize];
+        //for(int i = 0; i < bytesize; i++)
+        //{
+        //    test[i] = p[i];
+        //}
 
         //generate an OpenGL texture ID for this texture
         Gl.glGenTextures(1, &gl_texID);
 		Gl.glBindTexture(Gl.GL_TEXTURE_2D, gl_texID);
 		//store the texture data for OpenGL use
 		
-		uint bpp = FreeImage.GetBPP(dib);
+		//uint bpp = FreeImage.GetBPP(dib);
 
-		Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, width, height,
-			0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, bits);
+		Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, bits);
 
-		//Free FreeImage's copy of the data
-		FreeImage.Unload(dib);
+
+        Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
+        Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+        //Free FreeImage's copy of the data
+        FreeImage.Unload(dib);
+
+
+        var err = Gl.GetError();
+        Console.WriteLine("[Texture:Create] " + err);
 		return new Texture { textureID = gl_texID };
 	}
 }

@@ -10,6 +10,7 @@ class OglVertexAttribute
 
 public enum OglVertexAttributeType
 {
+    Float2,
     Float3,
     Float4
 }

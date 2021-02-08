@@ -17,14 +17,15 @@ namespace Viewer
         static CameraFirstPersonController fpController = new CameraFirstPersonController();
         static OglVertexArray create(Mesh mesh)
         {
-            var meshVertices = mesh.Select(new string[] { "v", "vn" });
+            var meshVertices = mesh.Select(new string[] { "v", "vn", "vt" });
             var triangleIndices = mesh.GetTriangleIndices(string.Empty);
             var vertexArray = new OglVertexArray().Init(
                (option) =>
                {
                    option.SetAttribute(
                        OglVertexAttributeType.Float3,
-                       OglVertexAttributeType.Float3);
+                       OglVertexAttributeType.Float3,
+                       OglVertexAttributeType.Float2);
                },
                (builder) =>
                {
@@ -63,6 +64,11 @@ namespace Viewer
             PrepareContext();
             // Create a window and shader program
             var window = CreateWindow(800, 600);
+            glEnable(GL_DEPTH_TEST);
+            //glEnable(GL_TEXTURE);
+            glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+
+
             var keyState = new GLFWKeyState();
             keyState.Init(window);
             var mouseState = new GLFWMouseState();
@@ -73,6 +79,8 @@ namespace Viewer
                 option.AddShader(OglProgram.ShaderType.Fragment, "./triangle.frag");
                 option.CompileNow();
             });
+            var err = GetError();
+            Console.WriteLine(err);
 
             var vertexArrays = new List<Mesh>(model.meshDict.Values).ConvertAll(mesh=>create(mesh));
 
@@ -86,10 +94,17 @@ namespace Viewer
             SetRandomColor(program);
             program.SetUniform("mvp", mvp);
 
-            var err = GetError();
+            err = GetError();
+            Console.WriteLine(err);
+
+            var texture = Texture.Create("/data/remilia.jpg");
+            texture.Activated();
+            program.SetUniform("tex", texture);
+
+            err = GetError();
             Console.WriteLine(err);
             long n = 0;
-            glEnable(GL_DEPTH_TEST);
+            
             while (!Glfw.WindowShouldClose(window))
             {
                 // Swap fore/back framebuffers, and poll for operating system events.
@@ -138,6 +153,8 @@ namespace Viewer
             Glfw.WindowHint(Hint.OpenglProfile, Profile.Core);
             Glfw.WindowHint(Hint.Doublebuffer, true);
             Glfw.WindowHint(Hint.Decorated, true);
+
+
         }
         private static Window CreateWindow(int width, int height)
         {
