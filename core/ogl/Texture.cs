@@ -3,7 +3,7 @@ using OpenGL;
 using System;
 using WavefrontObjSharp;
 
-public enum BaseInternalFormat: int
+public enum TextureFormat: int
 {
     GL_DEPTH_COMPONENT = Gl.GL_DEPTH_COMPONENT,
     GL_DEPTH_STENCIL = Gl.GL_DEPTH_STENCIL,
@@ -77,7 +77,7 @@ GL_RGBA16UI	            GL_RGBA	                ui16	    ui16	    ui16        ui
 GL_RGBA32I	            GL_RGBA	                i32	        i32	        i32	        i32	 
 GL_RGBA32UI	            GL_RGBA	                ui32	    ui32	    ui32	    ui32
 */
-public enum SizedInternalFormal: int
+public enum SizedTextureFormat: int
 {
     GL_R8 = Gl.GL_R8,
     GL_R8_SNORM = Gl.GL_R8_SNORM,
@@ -187,6 +187,8 @@ public class ActiveTextures
 public class Texture
 {
 	public uint textureID;
+    public uint width;
+    public uint height;
     public int ActiveID => ActiveTextures.textures.Find(this);
     public int Activated()
     {
@@ -249,7 +251,6 @@ public class Texture
 		if (dib == FIBITMAP.Zero)
 			return null;
         dib = FreeImage.ConvertTo32Bits(dib);
-
 		//retrieve the image data
 		bits = FreeImage.GetBits(dib);
 		//get the image width and height
@@ -258,12 +259,14 @@ public class Texture
 		//if this somehow one of these failed (they shouldn't), return failure
 		if ((bits == IntPtr.Zero) || (width == 0) || (height == 0))
 			return null;
+
         int pixelCount = width * height;
         byte* p = (byte*)bits;
+        byte t = 0;
         for (int i = 0; i < pixelCount; i++)
         {
             int k = i * 4;
-            byte t = p[k + 0];
+            t = p[k + 0];
             p[k + 0] = p[k + 2];
             p[k + 2] = t;
         }
