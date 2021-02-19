@@ -31,7 +31,7 @@ namespace Viewer
                {
                    foreach (var v in meshVertices)
                    {
-                       var vertexAttributeValuesList = new List<ParamVector>(v).ConvertAll(e => e.values);
+                       var vertexAttributeValuesList = new List<ParamVector>(v).ConvertAll(e => (object)e.values);
                        builder.AddVertex(vertexAttributeValuesList);
                    }
                    builder.AddIndices(OglVertexArray.Primitive.Type.Triangles, triangleIndices);
@@ -40,6 +40,26 @@ namespace Viewer
             return vertexArray;
         }
 
+        static OglVertexArray CreateQuad()
+        {
+            return new OglVertexArray().Init(
+                (option) =>
+                {
+                    option.SetAttribute(
+                       OglVertexAttributeType.Float3,
+                       OglVertexAttributeType.Float3,
+                       OglVertexAttributeType.Float2);
+                },
+                (builder) =>
+                {
+                    builder.AddVertex(new float[] { 0, 0, 0 }, new float[] { 0, 0, 1 }, new float[] { 0, 0 });
+                    builder.AddVertex(new float[] { 1, 0, 0 }, new float[] { 0, 0, 1 }, new float[] { 1, 0 });
+                    builder.AddVertex(new float[] { 1, 1, 0 }, new float[] { 0, 0, 1 }, new float[] { 1, 1 });
+                    builder.AddVertex(new float[] { 0, 1, 0 }, new float[] { 0, 0, 1 }, new float[] { 0, 1 });
+
+                    builder.AddIndices(OglVertexArray.Primitive.Type.Triangles, new uint[] { 0, 1, 2, 0, 2, 3 });
+                });
+        }
 
         static void Main(string[] args)
         {

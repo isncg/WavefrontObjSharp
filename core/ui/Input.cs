@@ -24,8 +24,7 @@ namespace WavefrontObjSharp
         {
             if (MouseState.current != null)
             {
-                x = MouseState.current.x;
-                y = MouseState.current.y;
+                MouseState.current.GetCursorPosition(out x, out y);
                 return true;
             }
             x = 0;y = 0;
@@ -71,9 +70,8 @@ namespace WavefrontObjSharp
     public class MouseState
     {
         public static MouseState current;
-        public double x;
-        public double y;
         public virtual bool IsMouseHover() { return false; }
+        public virtual void GetCursorPosition(out double x, out double y) { x = 0;y = 0; }
     }
 
     public class GLFWKeyState : KeyState
@@ -109,16 +107,6 @@ namespace WavefrontObjSharp
     public class GLFWMouseState: MouseState
     {
         GLFW.Window window;
-        GLFW.MouseCallback callback = null;
-        void MouseCallback(IntPtr window, double x, double y)
-        {
-            if(this.window == window)
-            {
-                this.x = x;
-                this.y = y;
-                //GLFW.Glfw.GetCursorPosition(this.window, out x, out y);
-            }
-        }
 
         public override bool IsMouseHover()
         {
@@ -128,10 +116,12 @@ namespace WavefrontObjSharp
         public void Init(GLFW.Window window)
         {
             this.window = window;
-            this.callback = new MouseCallback(MouseCallback);
-            GLFW.Glfw.GetCursorPosition(window, out x, out y);
-            GLFW.Glfw.SetCursorPositionCallback(window, callback);
             current = this;
+        }
+
+        public override void GetCursorPosition(out double x, out double y)
+        {
+            GLFW.Glfw.GetCursorPosition(window, out x, out y);
         }
     }
 }

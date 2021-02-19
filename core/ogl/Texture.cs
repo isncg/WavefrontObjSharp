@@ -181,6 +181,17 @@ public class ActiveTextures
             return instance;
         }
     }
+
+    public static void DeactivateAll()
+    {
+        if(instance!=null)
+        {
+            for(int i = 0; i < Count; i++)
+            {
+                instance.activeTextures[i] = null;
+            }
+        }
+    }
 }
 
 

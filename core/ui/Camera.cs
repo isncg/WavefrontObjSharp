@@ -119,7 +119,13 @@ namespace WavefrontObjSharp
                     mouseBeginPitch = controller.pitch;
                     mouseBeginHeading = controller.heading;
                     mouseLookEnable = true;
+                    //Console.WriteLine(string.Format("mouseBeginX:{0}, mouseBeginY:{1}, mouseBeginPitch:{2}, mouseBeginHeading:{3}, mouseLookEnable:{4}",
+                    //    mouseBeginX, mouseBeginY, mouseBeginPitch, mouseBeginHeading, mouseLookEnable));
                 }
+                //else
+                //{
+                //    Console.WriteLine("Cannot get mouse pos");
+                //}
             }
             private bool mouseLookEnable = false;
             private double mouseBeginX = 0;
@@ -139,13 +145,13 @@ namespace WavefrontObjSharp
                     controller.position -= 1f * Time.DeltaTime * camera.GetForward();
 
                 if (Input.GetKey(Keys.Up))
-                    controller.pitch += 1 * Time.DeltaTime;
+                    controller.pitch += 10 * Time.DeltaTime;
                 if (Input.GetKey(Keys.Down))
-                    controller.pitch -= 1 * Time.DeltaTime;
+                    controller.pitch -= 10 * Time.DeltaTime;
                 if (Input.GetKey(Keys.Left))
-                    controller.heading -= 1 * Time.DeltaTime;
+                    controller.heading -= 10 * Time.DeltaTime;
                 if (Input.GetKey(Keys.Right))
-                    controller.heading += 1 * Time.DeltaTime;
+                    controller.heading += 10 * Time.DeltaTime;
 
                 if (mouseLookEnable)
                 {
@@ -174,6 +180,19 @@ namespace WavefrontObjSharp
                         }
                     }
                 }
+
+                if (Input.GetKeyDown(Keys.LeftAlt))
+                {
+                    if (mouseLookEnable)
+                        mouseLookEnable = false;
+                    else
+                    {
+                        mouseLookEnable = true;
+                        StartTrackMousePos();
+                    }
+
+                }
+
                 controller.Setup(camera);
             }
         }
