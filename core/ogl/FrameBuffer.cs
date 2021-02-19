@@ -29,7 +29,10 @@ public class FrameBuffer
 
     public FrameBuffer(FrameBufferAttachmentInfo[] attachmentInfos, int width, int height)
     {
+        var lastFbo = Gl.glGetInteger(Gl.GL_FRAMEBUFFER_BINDING);
+        var lastTexture2D = Gl.glGetInteger(Gl.GL_TEXTURE_BINDING_2D);
         fbo = Gl.glGenFramebuffer();
+        Gl.glBindFramebuffer(fbo);
         var textures = Gl.glGenTextures(attachmentInfos.Length);
         for(int i = 0; i < attachmentInfos.Length; i++)
         {
@@ -42,7 +45,8 @@ public class FrameBuffer
                 attachment += attachmentInfos[i].index;
             Gl.glFramebufferTexture2D(Gl.GL_FRAMEBUFFER, attachment, Gl.GL_TEXTURE_2D, textures[i], 0);
         }
-        //Gl.glframebufferattach
+        Gl.glBindFramebuffer((uint)lastFbo);
+        Gl.glBindTexture(Gl.GL_TEXTURE_2D, (uint)lastTexture2D);
     }
 
     public void Use()
