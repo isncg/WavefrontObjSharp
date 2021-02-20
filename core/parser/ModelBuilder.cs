@@ -55,11 +55,9 @@ namespace WavefrontObjSharp
 			objVertexList = new List<ObjVertex>();
 			curMtlFaceList = null;
 		}
+            
 
-
-
-
-		public List<ParamVector[]> Select(string[] attrNames = null)
+        public List<ParamVector[]> Select(params string[] attrNames)
 		{
 			List<ParamVector[]> result = new List<ParamVector[]>();
 			int vertexCount = objVertexList.Count;

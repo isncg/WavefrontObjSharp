@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace WavefrontObjSharp
 {
@@ -31,8 +32,19 @@ namespace WavefrontObjSharp
 			callback?.Invoke(opt);
 		}
 
-		public ObjModel Run()
+        public ObjModel Run(string filename)
+        {
+            var reader = Utils.GetStreamReader(filename);
+            if (reader == null)
+                return null;
+            return Run(reader);
+        }
+
+
+        public ObjModel Run(StreamReader reader = null)
 		{
+            if (reader != null)
+                GetLine = reader.ReadLine;
 			ObjModel model = new ObjModel();
 			string line;
 			while (null != (line = GetLine()))
@@ -62,6 +74,20 @@ namespace WavefrontObjSharp
 			}
 			return model;
 		}
+
+        public static Parser CreateDefault()
+        {
+            var parser = new Parser();
+            parser.Configure(option =>
+            {
+                option.AddCommand("v", new ObjCommand_v("v"));
+                option.AddCommand("vn", new ObjCommand_v("vn"));
+                option.AddCommand("vt", new ObjCommand_v("vt"));
+                option.AddCommand("f", new ObjCommand_f());
+                option.AddCommand("o", new ObjCommand_o());
+            });
+            return parser;
+        }
 	}
 
 }

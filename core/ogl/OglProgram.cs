@@ -25,8 +25,15 @@ namespace Viewer
         public uint Program { get; private set; } = 0;
         public enum ShaderType
         {
+            Unknown = 0,
             Vertex = Gl.GL_VERTEX_SHADER,
             Fragment = Gl.GL_FRAGMENT_SHADER
+        }
+
+        public OglProgram() { }
+        public OglProgram(params string[] fileNames)
+        {
+            Init((option) => { option.Compile().ShaderFiles(fileNames); });
         }
 
         public OglProgram Init(Action<InitOption> callback)
@@ -95,14 +102,41 @@ namespace Viewer
                 this.oglProgram = oglProgram;
             }
 
-            public void AddShader(ShaderType shaderType, string fileName)
+            public InitOption ShaderFile(ShaderType shaderType, string fileName)
             {
-                oglProgram.shaderFiles.Add((uint)shaderType, new ShaderFile { filename = fileName, type = shaderType });
+                if (oglProgram.shaderFiles.ContainsKey((uint)shaderType))
+                    Console.WriteLine(string.Format("ERROR: Shader type {0} already exist '{1}'", shaderType, oglProgram.shaderFiles[(uint)shaderType].filename));
+                else
+                    oglProgram.shaderFiles.Add((uint)shaderType, new ShaderFile { filename = fileName, type = shaderType });
+                return this;
             }
 
-            public void CompileNow(bool compileNow = true)
+            public InitOption ShaderFiles(params string[] fileNames)
+            {
+                for(int i = 0; i < fileNames.Length; i++)
+                {
+                    var fnameSplit = fileNames[i].Split('.');
+                    ShaderType shaderType = ShaderType.Unknown;
+                    if (fnameSplit.Length > 0)
+                    {
+                        var postFix = fnameSplit[fnameSplit.Length - 1];
+                        if (postFix == "vert")
+                            shaderType = ShaderType.Vertex;
+                        else if (postFix == "frag")
+                            shaderType = ShaderType.Fragment;
+                    }
+                    if(shaderType == ShaderType.Unknown)
+                        Console.WriteLine(string.Format("ERROR: Unknown shader type '{0}'", fileNames[i]));
+                    else
+                        ShaderFile(shaderType, fileNames[i]);
+                }
+                return this;
+            }
+
+            public InitOption Compile(bool compileNow = true)
             {
                 this.IsCompileNow = compileNow;
+                return this;
             }
         }
 

@@ -11,13 +11,11 @@ namespace Viewer
     class Program
     {
         static Vector3f uniformValue = new Vector3f();
-        //static Matrix4x4 lookat = Matrix.LookAt(new Vector3f(2, 3, 5), new Vector3f(0, 0, 0), new Vector3f(0, 1, 0));
-        //static Matrix4x4 perspective = Matrix.Perspective(60, 1.333f, 0.1f, 100);
         static Camera camera = new Camera();
         static CameraFirstPersonController fpController = new CameraFirstPersonController();
         static OglVertexArray create(Mesh mesh)
         {
-            var meshVertices = mesh.Select(new string[] { "v", "vn", "vt" });
+            var meshVertices = mesh.Select("v", "vn", "vt");
             var triangleIndices = mesh.GetTriangleIndices(string.Empty);
             var vertexArray = new OglVertexArray().Init(
                (option) =>
@@ -63,23 +61,7 @@ namespace Viewer
 
         static void Main(string[] args)
         {
-            var reader = Utils.GetStreamReader("/data/teapot.obj");
-            if (reader == null)
-                return;
-
-            Parser parser = new Parser();
-            parser.Configure(option =>
-            {
-                option.AddCommand("v", new ObjCommand_v("v"));
-                option.AddCommand("vn", new ObjCommand_v("vn"));
-                option.AddCommand("vt", new ObjCommand_v("vt"));
-                option.AddCommand("f", new ObjCommand_f());
-                option.AddCommand("o", new ObjCommand_o());
-                if (reader != null)
-                    option.SetInput(reader.ReadLine);
-            });
-
-            var model = parser.Run();
+            var model = Parser.CreateDefault().Run("/data/teapot.obj");
             // Set context creation hints
             PrepareContext();
             // Create a window and shader program
@@ -93,14 +75,7 @@ namespace Viewer
             keyState.Init(window);
             var mouseState = new GLFWMouseState();
             mouseState.Init(window);
-            var program = new OglProgram().Init((option) =>
-            {
-                option.AddShader(OglProgram.ShaderType.Vertex, "./triangle.vert");
-                option.AddShader(OglProgram.ShaderType.Fragment, "./triangle.frag");
-                option.CompileNow();
-            });
-            var err = GetError();
-            Console.WriteLine(err);
+            var program = new OglProgram("./triangle.vert", "./triangle.frag");
 
             var vertexArrays = new List<Mesh>(model.meshDict.Values).ConvertAll(mesh=>create(mesh));
 
@@ -108,21 +83,13 @@ namespace Viewer
             camera.Update();
             var fpInput = new CameraFirstPersonController.InputHandler { controller = fpController, camera = camera};
             fpInput.EnableMouseLook(true);
-            Matrix4x4 mvp = new Matrix4x4();
-            Matrix4x4.Mul(camera.perspective, camera.lookat, mvp);
-            //var mvp = camera.perspective * camera.lookat; //Matrix4x4.I();
             SetRandomColor(program);
-            program.SetUniform("mvp", mvp);
-
-            err = GetError();
-            Console.WriteLine(err);
+            program.SetUniform("mvp", camera.MVP);
 
             var texture = Texture.Create("/data/remilia.jpg");
             texture.Activated();
             program.SetUniform("tex", texture);
 
-            err = GetError();
-            Console.WriteLine(err);
             long n = 0;
             
             while (!Glfw.WindowShouldClose(window))
@@ -139,9 +106,7 @@ namespace Viewer
 
 
                 fpInput.Update();
-                //camera.Update();
-                Matrix4x4.Mul(camera.perspective, camera.lookat, mvp);
-                program.SetUniform("mvp", mvp);
+                program.SetUniform("mvp", camera.MVP);
                 program.Use();
                 // Draw the triangle.
                 foreach (var vertexArray in vertexArrays)

@@ -11,6 +11,9 @@ namespace WavefrontObjSharp
         }
         public Matrix4x4 lookat { get; private set; } = new Matrix4x4();// = Matrix.LookAt(new Vector3f(2, 3, 5), new Vector3f(0, 0, 0), new Vector3f(0, 1, 0));
         public Matrix4x4 perspective { get; private set; } = new Matrix4x4();// Matrix.Perspective(60, 1.333f, 0.1f, 100);
+
+        private Matrix4x4 _mvp = new Matrix4x4();
+        public Matrix4x4 MVP => Matrix4x4.Mul(perspective, lookat, _mvp);
         //public CameraParam param = null;// new CameraParam();
         public Controller controller;
 
