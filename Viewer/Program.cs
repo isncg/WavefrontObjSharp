@@ -7,8 +7,7 @@ namespace Viewer
     class Program : OglApplication
     {
         Camera camera = new Camera();
-        CameraFirstPersonController fpController = new CameraFirstPersonController();
-        CameraFirstPersonController.InputHandler fpInput = null;
+        //CameraFirstPersonController fpController = new CameraFirstPersonController();
         ObjModel model = null;
         Texture texture = null;
         OglProgram program = null;
@@ -23,11 +22,10 @@ namespace Viewer
             program = new OglProgram("./triangle.vert", "./triangle.frag");
             model = Parser.CreateDefault().Run("/data/teapot.obj");
             vertexArrays = new List<Mesh>(model.meshDict.Values).ConvertAll(mesh => create(mesh));
-
-            camera.controller = fpController;//.param.position = new Vector3f(2, 3, 5);
-            camera.Update();
-            fpInput = new CameraFirstPersonController.InputHandler { controller = fpController, camera = camera };
-            fpInput.EnableMouseLook(true);
+            //var fpController = new CameraFirstPersonInputController(camera, true);
+            //camera.controller = fpController;//.param.position = new Vector3f(2, 3, 5);
+            //camera.Update();
+            Input.RegisterHandler(new CameraFirstPersonInputController(camera, true)); //new CameraFirstPersonController.InputHandler(controller: fpController, camera: camera, mouseLookEnable: true));
             //SetRandomColor(program);
             program.SetUniform("mvp", camera.MVP);
 
@@ -40,7 +38,7 @@ namespace Viewer
         {
             base.Render();
 
-            fpInput.Update();
+            //fpInput.FrameUpdate();
             program.SetUniform("mvp", camera.MVP);
             program.Use();
             // Draw the triangle.

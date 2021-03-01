@@ -5,8 +5,39 @@ using KeyCode = GLFW.Keys;
 
 namespace WavefrontObjSharp
 {
+
+
+
     public static class Input
     {
+        public interface IFrameHandler
+        {
+            void FrameUpdate();
+        }
+
+
+        private static HashSet<IFrameHandler> handlers;
+        public static void RegisterHandler(IFrameHandler handler)
+        {
+            if (null == handlers)
+                handlers = new HashSet<IFrameHandler>();
+            handlers.Add(handler);
+        }
+
+        public static void UnRegisterHandler(IFrameHandler handler)
+        {
+            if (null != handlers)
+                handlers.Remove(handler);
+        }
+
+        public static void AllHandlersFrameUpdate()
+        {
+            if (null != handlers)
+                foreach (var h in handlers)
+                    if (null != h)
+                        h.FrameUpdate();
+        }
+
         public static bool GetKey(KeyCode keyCode)
         {
             return KeyState.current != null && KeyState.current.keyHold.Contains((int)keyCode);
@@ -27,7 +58,7 @@ namespace WavefrontObjSharp
                 MouseState.current.GetCursorPosition(out x, out y);
                 return true;
             }
-            x = 0;y = 0;
+            x = 0; y = 0;
             return false;
         }
     }
@@ -71,7 +102,7 @@ namespace WavefrontObjSharp
     {
         public static MouseState current;
         public virtual bool IsMouseHover() { return false; }
-        public virtual void GetCursorPosition(out double x, out double y) { x = 0;y = 0; }
+        public virtual void GetCursorPosition(out double x, out double y) { x = 0; y = 0; }
     }
 
     public class GLFWKeyState : KeyState
@@ -104,7 +135,7 @@ namespace WavefrontObjSharp
         }
     }
 
-    public class GLFWMouseState: MouseState
+    public class GLFWMouseState : MouseState
     {
         GLFW.Window window;
 

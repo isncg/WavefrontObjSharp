@@ -66,13 +66,14 @@ namespace Viewer
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 Render();
-           
+
+                Input.AllHandlersFrameUpdate();
+                //foreach (var handler in Input.handlers)
+                //    if (null != handler) handler.FrameUpdate();
                 KeyState.current.FrameClear();
                 Time.frameStatics.Update();
                 Console.Write(string.Format("\rFPS: {0}         \r", Time.FilteredFps));
             }
-
         }
-
     }
 }
