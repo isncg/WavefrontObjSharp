@@ -8,42 +8,51 @@ namespace Viewer
     {
         Camera camera = new Camera();
         //CameraFirstPersonController fpController = new CameraFirstPersonController();
-        ObjModel model = null;
-        Texture texture = null;
-        OglProgram program = null;
-        List<OglVertexArray> vertexArrays = null;
-
+        ObjModel teapotModel = null;
+        Texture texRemilia = null;
+        OglProgram progTeapot = null;
+        OglProgram progQuad = null;
+        List<OglVertexArray> teapotVertexArrays = null;
+        OglVertexArray quadVertexArray = null;
         public override void Init()
         {
             base.Init();
             glEnable(GL_DEPTH_TEST);
             glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 
-            program = new OglProgram("./triangle.vert", "./triangle.frag");
-            model = Parser.CreateDefault().Run("/data/teapot.obj");
-            vertexArrays = new List<Mesh>(model.meshDict.Values).ConvertAll(mesh => create(mesh));
-            //var fpController = new CameraFirstPersonInputController(camera, true);
-            //camera.controller = fpController;//.param.position = new Vector3f(2, 3, 5);
-            //camera.Update();
+            progTeapot = new OglProgram("./triangle.vert", "./triangle.frag");
+            teapotModel = Parser.CreateDefault().Run("/data/teapot.obj");
+            teapotVertexArrays = new List<Mesh>(teapotModel.meshDict.Values).ConvertAll(mesh => create(mesh));
+
+            progQuad = new OglProgram("./quad.vert", "./quad.frag");
+
+            quadVertexArray = CreateQuad();
+
+
             Input.RegisterHandler(new CameraFirstPersonInputController(camera, true)); //new CameraFirstPersonController.InputHandler(controller: fpController, camera: camera, mouseLookEnable: true));
             //SetRandomColor(program);
-            program.SetUniform("mvp", camera.MVP);
+            progTeapot.SetUniform("mvp", camera.MVP);
 
-            texture = Texture.Create("/data/remilia.jpg");
-            texture.Activated();
-            program.SetUniform("tex", texture);
+            texRemilia = Texture.Create("/data/remilia.jpg");
+            texRemilia.Activated();
+            progTeapot.SetUniform("tex", texRemilia);
+
+            progQuad.SetUniform("tex", texRemilia);
         }
 
         public override void Render()
         {
             base.Render();
 
+            progQuad.Use();
+            quadVertexArray.Draw();
             //fpInput.FrameUpdate();
-            program.SetUniform("mvp", camera.MVP);
-            program.Use();
+            progTeapot.Use();
+            progTeapot.SetUniform("mvp", camera.MVP);
             // Draw the triangle.
-            foreach (var vertexArray in vertexArrays)
-                vertexArray.Draw();
+            foreach (var va in teapotVertexArrays)
+                va.Draw();
+
         }
 
         OglVertexArray create(Mesh mesh)
