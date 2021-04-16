@@ -180,6 +180,9 @@ namespace Viewer
                 }
                 data.GetBufferInfo(cache.bufferInfo);
                 ApplyCache();
+                var err = Gl.GetError();
+                if (err != 0)
+                    Console.WriteLine(string.Format("[Uniform:Apply FloatBuffer] {0} {1}", name, err));
                 return this;
             }
 
@@ -187,6 +190,9 @@ namespace Viewer
             {
                 cache.textureUnit = texture.ActiveID;
                 ApplyCache();
+                var err = Gl.GetError();
+                if (err != 0)
+                    Console.WriteLine(string.Format("[Uniform:Apply Texture] {0} {1}", name, err));
                 return this;
             }
         }

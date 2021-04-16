@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using OpenGL;
+using System;
+using System.Collections.Generic;
 using WavefrontObjSharp;
 using static OpenGL.Gl;
 
@@ -14,6 +16,7 @@ namespace Viewer
         OglProgram progQuad = null;
         List<OglVertexArray> teapotVertexArrays = null;
         OglVertexArray quadVertexArray = null;
+        FrameBuffer frameBuffer = null;
         public override void Init()
         {
             base.Init();
@@ -28,24 +31,35 @@ namespace Viewer
 
             quadVertexArray = CreateQuad();
 
+            
 
             Input.RegisterHandler(new CameraFirstPersonInputController(camera, true)); //new CameraFirstPersonController.InputHandler(controller: fpController, camera: camera, mouseLookEnable: true));
             //SetRandomColor(program);
+      
+            progTeapot.Use();
             progTeapot.SetUniform("mvp", camera.MVP);
 
             texRemilia = Texture.Create("/data/remilia.jpg");
             texRemilia.Activated();
+
+            progTeapot.Use();
             progTeapot.SetUniform("tex", texRemilia);
 
-            progQuad.SetUniform("tex", texRemilia);
+
+            frameBuffer = new FrameBuffer();
+            frameBuffer.Init(1, true, 1920, 1080);
+            frameBuffer.colors[0].Activated();
+
+            progQuad.Use();
+            progQuad.SetUniform("tex", frameBuffer.colors[0]);
         }
 
         public override void Render()
         {
             base.Render();
 
-            progQuad.Use();
-            quadVertexArray.Draw();
+            frameBuffer.Use();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             //fpInput.FrameUpdate();
             progTeapot.Use();
             progTeapot.SetUniform("mvp", camera.MVP);
@@ -53,6 +67,11 @@ namespace Viewer
             foreach (var va in teapotVertexArrays)
                 va.Draw();
 
+            FrameBuffer.UseDefault();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            progQuad.Use();
+            progQuad.SetUniform("tex", frameBuffer.colors[0]);
+            quadVertexArray.Draw();
         }
 
         OglVertexArray create(Mesh mesh)
