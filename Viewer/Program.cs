@@ -36,41 +36,41 @@ namespace Viewer
             Input.RegisterHandler(new CameraFirstPersonInputController(camera, true)); //new CameraFirstPersonController.InputHandler(controller: fpController, camera: camera, mouseLookEnable: true));
             //SetRandomColor(program);
       
-            progTeapot.Use();
-            progTeapot.SetUniform("mvp", camera.MVP);
-
             texRemilia = Texture.Create("/data/remilia.jpg");
             texRemilia.Activated();
 
-            progTeapot.Use();
-            progTeapot.SetUniform("tex", texRemilia);
+            progTeapot.Use((config)=> {
+                config.SetUniform("mvp", camera.MVP);
+                config.SetUniform("tex", texRemilia);
+            });
 
 
             frameBuffer = new FrameBuffer();
             frameBuffer.Init(1, true, 1920, 1080);
+            frameBuffer.clearOption.color.Set(1.0f, 0.0f, 0.0f, 1.0f);
             frameBuffer.colors[0].Activated();
 
-            progQuad.Use();
-            progQuad.SetUniform("tex", frameBuffer.colors[0]);
+            progQuad.Use((config)=> {
+                config.SetUniform("tex", frameBuffer.colors[0]);
+            });
         }
 
         public override void Render()
         {
             base.Render();
 
-            frameBuffer.Use();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            //fpInput.FrameUpdate();
-            progTeapot.Use();
-            progTeapot.SetUniform("mvp", camera.MVP);
+            frameBuffer.Use(clear:true);
+            progTeapot.Use((config) => {
+                config.SetUniform("mvp", camera.MVP);
+            });
             // Draw the triangle.
             foreach (var va in teapotVertexArrays)
                 va.Draw();
 
-            FrameBuffer.UseDefault();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            progQuad.Use();
-            progQuad.SetUniform("tex", frameBuffer.colors[0]);
+            FrameBuffer.UseDefault(clear:true);
+            progQuad.Use((config) => {
+                config.SetUniform("tex", frameBuffer.colors[0]);
+            });
             quadVertexArray.Draw();
         }
 

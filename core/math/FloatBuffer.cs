@@ -198,6 +198,12 @@ namespace WavefrontObjSharp
                 return new float[] { X, Y, Z, W };
             return base.GetArray();
         }
+
+        public void Set(float x, float y, float z, float w)
+        {
+            X = x;Y = y;Z = z;W = w;
+        }
+
         public void Set(Vector4f xyzw)
         {
             X = xyzw.X; Y = xyzw.Y; Z = xyzw.Z; W = xyzw.W;

@@ -1,5 +1,7 @@
 using OpenGL;
 using System;
+using WavefrontObjSharp;
+
 public enum FrameBufferStatus
 {
     COMPLETE = Gl.GL_FRAMEBUFFER_COMPLETE,
@@ -14,6 +16,17 @@ public enum FrameBufferStatus
     UNSUPPORTED = Gl.GL_FRAMEBUFFER_UNSUPPORTED,
 }
 
+
+public class FrameBufferClearOption
+{
+    public Vector4f color = new Vector4f();
+    public uint clearMask = Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT;
+    public void Clear()
+    {
+        Gl.glClearColor(color.X, color.Y, color.Z, color.W);
+        Gl.glClear(clearMask);
+    }
+}
 
 public abstract class FrameBufferAttachmentInfo
 {
@@ -61,7 +74,7 @@ public class FrameBuffer
     public uint fbo;
     public Texture[] colors;
     public Texture depth;
-
+    public FrameBufferClearOption clearOption = new FrameBufferClearOption();
     public void Init(int colorBufferCount, bool hasDepth, uint width, uint height)
     {
         int textureCount = hasDepth ? colorBufferCount + 1 : colorBufferCount;
@@ -85,8 +98,7 @@ public class FrameBuffer
         var lastFbo = Gl.glGetInteger(Gl.GL_FRAMEBUFFER_BINDING);
         var lastTexture2D = Gl.glGetInteger(Gl.GL_TEXTURE_BINDING_2D);
         fbo = Gl.glGenFramebuffer();
-        Gl.glBindFramebuffer(fbo);       
-
+        Gl.glBindFramebuffer(fbo);
         var textures = Gl.glGenTextures(attachmentInfos.Length);
         for (int i = 0; i < attachmentInfos.Length; i++)
         {
@@ -118,15 +130,24 @@ public class FrameBuffer
         Gl.glBindTexture(Gl.GL_TEXTURE_2D, (uint)lastTexture2D);
     }
 
-    public void Use()
+    public void Use(bool clear = false)
     {
         Gl.glBindFramebuffer(fbo);
         Log.LogOnGlErrF("[Framebuffer:Use] {0}", fbo);
+        if (clear)
+            clearOption.Clear();
     }
 
-    public static void UseDefault()
+    public static FrameBufferClearOption DefaultClearOption = new FrameBufferClearOption
+    {
+        clearMask = Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT,
+        color = new Vector4f(0.2f, 0.2f, 0.2f, 0.0f)
+    };
+    public static void UseDefault(bool clear = false)
     {
         Gl.glBindFramebuffer(0);
+        if (clear)
+            DefaultClearOption.Clear();
         Log.LogOnGlErr("[Framebuffer:UseDefault]");
     }
 }
