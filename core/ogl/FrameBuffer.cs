@@ -90,8 +90,8 @@ public class FrameBuffer
         var textures = Gl.glGenTextures(attachmentInfos.Length);
         for (int i = 0; i < attachmentInfos.Length; i++)
         {
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, textures[i]); var err1 = Gl.GetError();
-            Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, (int)attachmentInfos[i].format, (int)width, (int)height, 0, (int)attachmentInfos[i].format, Gl.GL_FLOAT, System.IntPtr.Zero); var err2 = Gl.GetError();
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, textures[i]);  Log.LogOnGlErrF("[Framebuffer:Init] bindTexture {0}", i);
+            Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, (int)attachmentInfos[i].format, (int)width, (int)height, 0, (int)attachmentInfos[i].format, Gl.GL_FLOAT, System.IntPtr.Zero); Log.LogOnGlErrF("[Framebuffer:Init] texImage {0}", i);
 
             int attachment = (int)attachmentInfos[i].type;
             if (attachmentInfos[i].type == FrameBufferAttachmentInfo.AttachmentType.GL_COLOR_ATTACHMENT)
@@ -100,14 +100,9 @@ public class FrameBuffer
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
-            var err3 = Gl.GetError();
-            Gl.glFramebufferTexture2D(Gl.GL_FRAMEBUFFER, attachment, Gl.GL_TEXTURE_2D, textures[i], 0); var err4 = Gl.GetError();
+            Log.LogOnGlErrF("[Framebuffer:Init] texParam {0}", i);
+            Gl.glFramebufferTexture2D(Gl.GL_FRAMEBUFFER, attachment, Gl.GL_TEXTURE_2D, textures[i], 0); Log.LogOnGlErrF("[Framebuffer:Init] attach {0}", i);
             attachmentInfos[i].textureID = textures[i];
-
-            if ((err1 | err2 | err3 | err4) != 0)
-            {
-                Console.WriteLine(string.Format("[Framebuffer:Init] attachmentInfos[{0}] bind:{1}, img:{2}, texparam:{3}, attach:{4}", i, err1, err2, err3, err4));
-            }
 
         }
 
@@ -125,19 +120,13 @@ public class FrameBuffer
 
     public void Use()
     {
-        Gl.glBindFramebuffer(fbo); var err1 = Gl.GetError();
-        if (err1 != 0)
-        {
-            Console.WriteLine(string.Format("[Framebuffer:Use] {0}, {1}",fbo, err1));
-        }
+        Gl.glBindFramebuffer(fbo);
+        Log.LogOnGlErrF("[Framebuffer:Use] {0}", fbo);
     }
 
     public static void UseDefault()
     {
-        Gl.glBindFramebuffer(0); var err1 = Gl.GetError();
-        if (err1 != 0)
-        {
-            Console.WriteLine(string.Format("[Framebuffer:UseDefault] {0}", err1));
-        }
+        Gl.glBindFramebuffer(0);
+        Log.LogOnGlErr("[Framebuffer:UseDefault]");
     }
 }
