@@ -1,4 +1,5 @@
-﻿using OpenGL;
+﻿using GLFW;
+using OpenGL;
 using System;
 using System.Collections.Generic;
 using WavefrontObjSharp;
@@ -47,7 +48,7 @@ namespace Viewer
 
             frameBuffer = new FrameBuffer();
             frameBuffer.Init(1, true, 1920, 1080);
-            frameBuffer.clearOption.color.Set(1.0f, 0.0f, 0.0f, 1.0f);
+            frameBuffer.clearOption.color.Set(0.0f, 0.0f, 0.0f, 0.0f);
             frameBuffer.colors[0].Activated();
 
             progQuad.Use((config)=> {
@@ -55,9 +56,9 @@ namespace Viewer
             });
         }
 
-        public override void Render()
+        public override void Render(Window window)
         {
-            base.Render();
+            base.Render(window);
 
             frameBuffer.Use(clear:true);
             progTeapot.Use((config) => {
@@ -67,7 +68,7 @@ namespace Viewer
             foreach (var va in teapotVertexArrays)
                 va.Draw();
 
-            FrameBuffer.UseDefault(clear:true);
+            FrameBuffer.UseDefault(window, clear:true);
             progQuad.Use((config) => {
                 config.SetUniform("tex", frameBuffer.colors[0]);
             });

@@ -1,3 +1,4 @@
+using GLFW;
 using OpenGL;
 using System;
 using WavefrontObjSharp;
@@ -74,6 +75,8 @@ public class FrameBuffer
     public uint fbo;
     public Texture[] colors;
     public Texture depth;
+    private uint width;
+    private uint height;
     public FrameBufferClearOption clearOption = new FrameBufferClearOption();
     public void Init(int colorBufferCount, bool hasDepth, uint width, uint height)
     {
@@ -95,6 +98,8 @@ public class FrameBuffer
 
     private void Init(FrameBufferAttachmentInfo[] attachmentInfos, uint width, uint height)
     {
+        this.width = width;
+        this.height = height;
         var lastFbo = Gl.glGetInteger(Gl.GL_FRAMEBUFFER_BINDING);
         var lastTexture2D = Gl.glGetInteger(Gl.GL_TEXTURE_BINDING_2D);
         fbo = Gl.glGenFramebuffer();
@@ -136,6 +141,7 @@ public class FrameBuffer
         Log.LogOnGlErrF("[Framebuffer:Use] {0}", fbo);
         if (clear)
             clearOption.Clear();
+        Gl.glViewport(0, 0, (int)width, (int)height);
     }
 
     public static FrameBufferClearOption DefaultClearOption = new FrameBufferClearOption
@@ -143,9 +149,11 @@ public class FrameBuffer
         clearMask = Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT,
         color = new Vector4f(0.2f, 0.2f, 0.2f, 0.0f)
     };
-    public static void UseDefault(bool clear = false)
+    public static void UseDefault(Window window, bool clear = false)
     {
         Gl.glBindFramebuffer(0);
+        Glfw.GetWindowSize(window, out var width, out var height);
+        Gl.glViewport(0, 0, width, height);
         if (clear)
             DefaultClearOption.Clear();
         Log.LogOnGlErr("[Framebuffer:UseDefault]");

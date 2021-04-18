@@ -41,7 +41,7 @@ namespace Viewer
 
         }
 
-        public virtual void Render()
+        public virtual void Render(Window window)
         {
 
         }
@@ -65,7 +65,7 @@ namespace Viewer
                 // Clear the framebuffer to defined background color
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                Render();
+                Render(window);
 
                 Input.AllHandlersFrameUpdate();
                 //foreach (var handler in Input.handlers)
