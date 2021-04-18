@@ -41,8 +41,8 @@ namespace Viewer
             texRemilia.Activated();
 
             progTeapot.Use((config)=> {
-                config.SetUniform("mvp", camera.MVP);
-                config.SetUniform("tex", texRemilia);
+                config.SetUniform(OglProgram.UniformID._mvp, camera.MVP);
+                config.SetUniform(OglProgram.UniformID._tex, texRemilia);
             });
 
 
@@ -52,7 +52,7 @@ namespace Viewer
             frameBuffer.colors[0].Activated();
 
             progQuad.Use((config)=> {
-                config.SetUniform("tex", frameBuffer.colors[0]);
+                config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[0]);
             });
         }
 
@@ -62,7 +62,7 @@ namespace Viewer
 
             frameBuffer.Use(clear:true);
             progTeapot.Use((config) => {
-                config.SetUniform("mvp", camera.MVP);
+                config.SetUniform(OglProgram.UniformID._mvp, camera.MVP);
             });
             // Draw the triangle.
             foreach (var va in teapotVertexArrays)
@@ -70,7 +70,7 @@ namespace Viewer
 
             FrameBuffer.UseDefault(window, clear:true);
             progQuad.Use((config) => {
-                config.SetUniform("tex", frameBuffer.colors[0]);
+                config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[0]);
             });
             quadVertexArray.Draw();
         }

@@ -4,8 +4,8 @@ in vec2 uv;
 
 out vec4 result;
 
-uniform vec3 color;
-uniform sampler2D tex;
+uniform vec3 _color;
+uniform sampler2D _tex;
 
 void main()
 {
@@ -16,5 +16,5 @@ void main()
 		diffuseColor = vec4(diffuseFactor, diffuseFactor, diffuseFactor, 1.0);
 	else
 		diffuseColor = vec4(0, 0, 0, 0);
-    result = texture2D(tex, uv.st)*(ambientColor + diffuseColor);
+    result = texture2D(_tex, uv.st)*(ambientColor + diffuseColor);
 } 

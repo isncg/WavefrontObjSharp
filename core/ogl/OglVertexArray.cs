@@ -15,7 +15,7 @@ namespace Viewer
 
         public class Primitive
         {
-            public enum Type: int
+            public enum Type : int
             {
                 Triangles = GL_TRIANGLES
             }
@@ -41,19 +41,11 @@ namespace Viewer
                 builder(vartexDataBuilder);
                 data = vartexDataBuilder.buildResult.ToArray();
             }
-
+            InitBuffer();
             return this;
         }
 
-        public void Bind()
-        {
-            if (vao <= 0)
-                CreateBuffer();
-            else
-                glBindVertexArray(vao);
-        }
-
-        unsafe void CreateBuffer()
+        unsafe void InitBuffer()
         {
             vao = glGenVertexArray();
             vbo = glGenBuffer();
@@ -65,7 +57,7 @@ namespace Viewer
             {
                 glBufferData(GL_ARRAY_BUFFER, data.Length, v, GL_STATIC_DRAW);
             }
-            foreach(var attr in attributes)
+            foreach (var attr in attributes)
             {
                 glEnableVertexAttribArray(attr.index);
                 glVertexAttribPointer(attr.index, attr.size, attr.type, attr.normalized, attr.stride, (void*)attr.offset);
@@ -73,10 +65,14 @@ namespace Viewer
         }
         private List<OglVertexAttribute> attributes = new List<OglVertexAttribute>();
         private int vertexByteSize = 0;
-     
+
         public void Draw()
         {
-            Bind();
+            if (vao <= 0)
+            {
+                //TODO: error log
+            }
+            glBindVertexArray(vao);
             foreach (var primitive in primitives)
                 glDrawElements((int)primitive.type, primitive.indices);
         }
