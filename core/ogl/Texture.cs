@@ -1,6 +1,7 @@
 using FreeImageAPI;
 using OpenGL;
 using System;
+using System.Collections.Generic;
 using WavefrontObjSharp;
 
 public enum TextureFormat: int
@@ -145,53 +146,120 @@ public enum SizedTextureFormat: int
 public class ActiveTextures
 {
     public const int Count = Gl.GL_ACTIVE_TEXTURE - Gl.GL_TEXTURE0;
-    private Texture[] activeTextures = new Texture[Count];
-    public Texture this[int index]
-    {
-        get
-        {
-            return activeTextures[index];
-        }
-        set
-        {
-            if (value != null)
-            {
-                Gl.glActiveTexture(index + Gl.GL_TEXTURE0);
-                Gl.glBindTexture(Gl.GL_TEXTURE_2D, value.textureID);
-            }
-            activeTextures[index] = value;
-        }
-    }
+    private static ulong dirtyMask = 0;// 0:avaliable 1:in use
+    private static Texture[] activeTextures = new Texture[Count];
+    private static Dictionary<Texture, int> activeTextureDict = new Dictionary<Texture, int>();
 
-    public int Find(Texture texture)
+    public static int Get(Texture texture)
     {
-        for (int i = 0; i < activeTextures.Length; i++)
-            if (texture == activeTextures[i])
-                return i;
+        if (activeTextureDict.TryGetValue(texture, out int id))
+            return id;
         return -1;
     }
 
-    static ActiveTextures instance = null;
-    private ActiveTextures() { }
-    public static ActiveTextures textures
+    public static Texture Get(int index)
     {
-        get
+        return index >= 0 && index < Count ? activeTextures[index] : null;
+    }
+
+    public static void Clear(bool hard = false)
+    {
+        dirtyMask = 0;
+        if (hard)
         {
-            if (instance == null) instance = new ActiveTextures();
-            return instance;
+            activeTextureDict.Clear();
+            for (int i = 0; i < Count; i++)
+                activeTextures[i] = null;
         }
     }
 
-    public static void DeactivateAll()
+    public static int Activate(Texture texture)
     {
-        if(instance!=null)
+        if (activeTextureDict.TryGetValue(texture, out int id))
         {
-            for(int i = 0; i < Count; i++)
+            dirtyMask |= (1ul << id);
+            return id;
+        }
+        for(int i=0;i<Count;i++)
+        {
+            if (activeTextures[i] == null || ((1ul << i) & dirtyMask) == 0ul)
             {
-                instance.activeTextures[i] = null;
+                activeTextures[i] = texture;
+                activeTextureDict[texture] = i;
+                dirtyMask |= (1ul << i);
+                Gl.glActiveTexture(i + Gl.GL_TEXTURE0);
+                Gl.glBindTexture(texture.Target, texture.textureID);  
+                return i;
             }
         }
+        return -1;
     }
+
+    public static void ActivateEx(params Texture[] textures)
+    {
+        Clear();
+        for(int i = 0; i < textures.Length; i++)
+        {
+            Activate(textures[i]);
+        }
+    }
+
+    public static void Deactivate(Texture texture)
+    {
+        if(activeTextureDict.TryGetValue(texture, out var id))
+        {
+            activeTextureDict.Remove(texture);
+            activeTextures[id] = null;
+        }
+    }
+
+
+    //public Texture this[int index]
+    //{
+    //    get
+    //    {
+    //        return activeTextures[index];
+    //    }
+    //    set
+    //    {
+    //        if (value != null)
+    //        {
+    //            Gl.glActiveTexture(index + Gl.GL_TEXTURE0);
+    //            Gl.glBindTexture(Gl.GL_TEXTURE_2D, value.textureID);
+    //        }
+    //        activeTextures[index] = value;
+    //    }
+    //}
+
+    //public int Find(Texture texture)
+    //{
+    //    for (int i = 0; i < activeTextures.Length; i++)
+    //        if (texture == activeTextures[i])
+    //            return i;
+    //    return -1;
+    //}
+
+    //static ActiveTextures instance = null;
+    //private ActiveTextures() { }
+    //public static ActiveTextures textures
+    //{
+    //    get
+    //    {
+    //        if (instance == null) instance = new ActiveTextures();
+    //        return instance;
+    //    }
+    //}
+
+    //public static void DeactivateAll()
+    //{
+    //    if(instance!=null)
+    //    {
+    //        for(int i = 0; i < Count; i++)
+    //        {
+    //            instance.activeTextures[i] = null;
+    //        }
+    //    }
+    //}
 }
 
 
@@ -200,35 +268,25 @@ public class Texture
 	public uint textureID;
     public uint width;
     public uint height;
-    public int ActiveID => ActiveTextures.textures.Find(this);
-    public int Activated()
-    {
-        int id = ActiveID;
-        if (id >= 0)
-            return id;
-        for(int i = 0; i < ActiveTextures.Count; i++)
-        {
-            if(null == ActiveTextures.textures[i])
-            {
-                ActiveTextures.textures[i] = this;
-                return i;
-            }
-        }
-        return -1;
-    }
+    public int ActiveID => ActiveTextures.Get(this);
+    public virtual int Target => Gl.GL_TEXTURE_2D;
+    //public int Activated()
+    //{
+    //    return ActiveTextures.Activate(this);
+    //}
 
-    public int Deactivated()
-    {
-        for(int i=0;i< ActiveTextures.Count; i++)
-        {
-            if(this == ActiveTextures.textures[i])
-            {
-                ActiveTextures.textures[i] = null;
-                return i;
-            }
-        }
-        return -1;
-    }
+    //public int Deactivated()
+    //{
+    //    for(int i=0;i< ActiveTextures.Count; i++)
+    //    {
+    //        if(this == ActiveTextures.textures[i])
+    //        {
+    //            ActiveTextures.textures[i] = null;
+    //            return i;
+    //        }
+    //    }
+    //    return -1;
+    //}
 
     public static unsafe Texture Create(string filename)
     {

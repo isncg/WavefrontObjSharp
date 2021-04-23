@@ -167,26 +167,33 @@ namespace Viewer
         public abstract class Uniform
         {
             //[StructLayout(LayoutKind.Explicit)]
-            protected struct Cache
+            unsafe protected struct Cache
             {
-                //[FieldOffset(0)]
-                public FloatBuffer.Info bufferInfo;
-                //[FieldOffset(0)]
-                public int textureUnit;
+                public float* fp1;
+                public int i1;
+                ////[FieldOffset(0)]
+                //public FloatBuffer.Info bufferInfo;
+                ////[FieldOffset(0)]
+                //public int textureUnit;
             }
             public string name = null;
             public int location = -1;
             protected Cache cache = new Cache();
             private bool isCacheInitialized = false;
             public abstract void ApplyCache();
-            public Uniform Apply(FloatBuffer data)
+
+            private static readonly FloatBuffer.Info fbInfo = new FloatBuffer.Info();
+            public unsafe Uniform Apply(FloatBuffer data)
             {
-                if (cache.bufferInfo == null || !isCacheInitialized)
-                {
-                    cache.bufferInfo = new FloatBuffer.Info();
-                    isCacheInitialized = true;
-                }
-                data.GetBufferInfo(cache.bufferInfo);
+                //if (cache.bufferInfo == null || !isCacheInitialized)
+                //{
+                //    cache.bufferInfo = new FloatBuffer.Info();
+                //    isCacheInitialized = true;
+                //}
+                isCacheInitialized = true;
+                data.GetBufferInfo(fbInfo);
+                cache.fp1 = fbInfo.pointer;
+                cache.i1 = fbInfo.length;
                 ApplyCache();
                 Log.LogOnGlErrF("[Uniform:Apply FloatBuffer] {0}", name);
                 return this;
@@ -194,7 +201,8 @@ namespace Viewer
 
             public Uniform Apply(Texture texture)
             {
-                cache.textureUnit = texture.ActiveID;
+                //cache.textureUnit = texture.ActiveID;
+                cache.i1 = texture.ActiveID;
                 ApplyCache();
                 Log.LogOnGlErrF("[Uniform:Apply Texture] {0}", name);
                 return this;
@@ -245,19 +253,19 @@ namespace Viewer
                 return result;
             }
 
-            public class Uniform_Vector3f : Uniform { public override unsafe void ApplyCache() => Gl.glUniform3fv(location, 1, cache.bufferInfo.pointer); }
+            public class Uniform_Vector3f : Uniform { public override unsafe void ApplyCache() => Gl.glUniform3fv(location, 1, cache.fp1); }
             public Uniform SetUniform(UniformID uniformID, Vector3f value) => GetUniformInfo<Uniform_Vector3f>(uniformID)?.Apply(value);
 
-            public class Uniform_Vector4f : Uniform { public override unsafe void ApplyCache() => Gl.glUniform4fv(location, 1, cache.bufferInfo.pointer); }
+            public class Uniform_Vector4f : Uniform { public override unsafe void ApplyCache() => Gl.glUniform4fv(location, 1, cache.fp1); }
             public Uniform SetUniform(UniformID uniformID, Vector4f value) => GetUniformInfo<Uniform_Vector4f>(uniformID)?.Apply(value);
 
-            public class Uniform_Matrix3x3 : Uniform { public override unsafe void ApplyCache() => Gl.glUniformMatrix3fv(location, 1, false, cache.bufferInfo.pointer); }
+            public class Uniform_Matrix3x3 : Uniform { public override unsafe void ApplyCache() => Gl.glUniformMatrix3fv(location, 1, false, cache.fp1); }
             public Uniform SetUniform(UniformID uniformID, Matrix3x3 value) => GetUniformInfo<Uniform_Matrix3x3>(uniformID)?.Apply(value);
 
-            public class Uniform_Matrix4x4 : Uniform { public override unsafe void ApplyCache() => Gl.glUniformMatrix4fv(location, 1, false, cache.bufferInfo.pointer); }
+            public class Uniform_Matrix4x4 : Uniform { public override unsafe void ApplyCache() => Gl.glUniformMatrix4fv(location, 1, false, cache.fp1); }
             public Uniform SetUniform(UniformID uniformID, Matrix4x4 value) => GetUniformInfo<Uniform_Matrix4x4>(uniformID)?.Apply(value);
 
-            public class Uniform_Sampler : Uniform { public override void ApplyCache() => Gl.glUniform1i(location, cache.textureUnit); }
+            public class Uniform_Sampler : Uniform { public override void ApplyCache() => Gl.glUniform1i(location, cache.i1); }
             public Uniform SetUniform(UniformID uniformID, Texture value) => GetUniformInfo<Uniform_Sampler>(uniformID)?.Apply(value);
 
         }

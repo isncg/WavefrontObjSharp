@@ -32,28 +32,13 @@ namespace Viewer
 
             quadVertexArray = CreateQuad();
 
-            
-
             Input.RegisterHandler(new CameraFirstPersonInputController(camera, true)); //new CameraFirstPersonController.InputHandler(controller: fpController, camera: camera, mouseLookEnable: true));
-            //SetRandomColor(program);
       
             texRemilia = Texture.Create("/data/remilia.jpg");
-            texRemilia.Activated();
-
-            progTeapot.Use((config)=> {
-                config.SetUniform(OglProgram.UniformID._mvp, camera.MVP);
-                config.SetUniform(OglProgram.UniformID._tex, texRemilia);
-            });
-
 
             frameBuffer = new FrameBuffer();
             frameBuffer.Init(1, true, 1920, 1080);
             frameBuffer.clearOption.color.Set(0.0f, 0.0f, 0.0f, 0.0f);
-            frameBuffer.colors[0].Activated();
-
-            progQuad.Use((config)=> {
-                config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[0]);
-            });
         }
 
         public override void Render(Window window)
@@ -61,14 +46,17 @@ namespace Viewer
             base.Render(window);
 
             frameBuffer.Use(clear:true);
+            ActiveTextures.Activate(texRemilia);
             progTeapot.Use((config) => {
                 config.SetUniform(OglProgram.UniformID._mvp, camera.MVP);
+                config.SetUniform(OglProgram.UniformID._tex, texRemilia);
             });
             // Draw the triangle.
             foreach (var va in teapotVertexArrays)
                 va.Draw();
 
             FrameBuffer.UseDefault(window, clear:true);
+            ActiveTextures.Activate(frameBuffer.colors[0]);
             progQuad.Use((config) => {
                 config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[0]);
             });
