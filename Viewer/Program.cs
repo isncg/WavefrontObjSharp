@@ -46,7 +46,8 @@ namespace Viewer
             base.Render(window);
 
             frameBuffer.Use(clear:true);
-            ActiveTextures.Activate(texRemilia);
+            //ActiveTextures.Clear();
+            //ActiveTextures.Activate(texRemilia);
             progTeapot.Use((config) => {
                 config.SetUniform(OglProgram.UniformID._mvp, camera.MVP);
                 config.SetUniform(OglProgram.UniformID._tex, texRemilia);
@@ -56,7 +57,8 @@ namespace Viewer
                 va.Draw();
 
             FrameBuffer.UseDefault(window, clear:true);
-            ActiveTextures.Activate(frameBuffer.colors[0]);
+            //ActiveTextures.Clear();
+            //ActiveTextures.Activate(frameBuffer.colors[0]);
             progQuad.Use((config) => {
                 config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[0]);
             });

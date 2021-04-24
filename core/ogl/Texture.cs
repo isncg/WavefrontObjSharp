@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using WavefrontObjSharp;
 
-public enum TextureFormat: int
+public enum TextureFormat : int
 {
     GL_DEPTH_COMPONENT = Gl.GL_DEPTH_COMPONENT,
     GL_DEPTH_STENCIL = Gl.GL_DEPTH_STENCIL,
@@ -78,7 +78,7 @@ GL_RGBA16UI	            GL_RGBA	                ui16	    ui16	    ui16        ui
 GL_RGBA32I	            GL_RGBA	                i32	        i32	        i32	        i32	 
 GL_RGBA32UI	            GL_RGBA	                ui32	    ui32	    ui32	    ui32
 */
-public enum SizedTextureFormat: int
+public enum SizedTextureFormat : int
 {
     GL_R8 = Gl.GL_R8,
     GL_R8_SNORM = Gl.GL_R8_SNORM,
@@ -162,9 +162,15 @@ public class ActiveTextures
         return index >= 0 && index < Count ? activeTextures[index] : null;
     }
 
-    public static void Clear(bool hard = false)
+    public static void Clear()
     {
         dirtyMask = 0;
+    }
+
+
+    public static void Clear(bool hard)
+    {
+        Clear();
         if (hard)
         {
             activeTextureDict.Clear();
@@ -175,159 +181,123 @@ public class ActiveTextures
 
     public static int Activate(Texture texture)
     {
+        if (texture.activeID >= 0 && texture.activeID < Count && activeTextures[texture.activeID] == texture)
+        {
+            if (((1ul << texture.activeID) & dirtyMask) == 0ul)
+            {
+                dirtyMask |= (1ul << texture.activeID);
+                Gl.glActiveTexture(texture.activeID + Gl.GL_TEXTURE0);
+                Gl.glBindTexture(texture.Target, texture.textureID);
+            }
+            return texture.activeID;
+        }
+
         if (activeTextureDict.TryGetValue(texture, out int id))
         {
-            dirtyMask |= (1ul << id);
+            if (((1ul << id) & dirtyMask) == 0ul)
+            {
+                dirtyMask |= (1ul << id);
+                Gl.glActiveTexture(id + Gl.GL_TEXTURE0);
+                Gl.glBindTexture(texture.Target, texture.textureID);
+            }
+            texture.activeID = id;
             return id;
         }
-        for(int i=0;i<Count;i++)
+
+        if (activeTextureDict.Count < Count)
         {
-            if (activeTextures[i] == null || ((1ul << i) & dirtyMask) == 0ul)
+            for (int i = 0; i < Count; i++)
+            {
+                if (activeTextures[i] == null)
+                {
+                    activeTextures[i] = texture;
+                    activeTextureDict[texture] = i;
+                    dirtyMask |= (1ul << i);
+                    Gl.glActiveTexture(i + Gl.GL_TEXTURE0);
+                    Gl.glBindTexture(texture.Target, texture.textureID);
+                    texture.activeID = i;
+                    return i;
+                }
+            }
+        }
+
+
+        for (int i = 0; i < Count; i++)
+        {
+            if (((1ul << i) & dirtyMask) == 0ul)
             {
                 activeTextures[i] = texture;
                 activeTextureDict[texture] = i;
                 dirtyMask |= (1ul << i);
                 Gl.glActiveTexture(i + Gl.GL_TEXTURE0);
-                Gl.glBindTexture(texture.Target, texture.textureID);  
+                Gl.glBindTexture(texture.Target, texture.textureID);
+                texture.activeID = i;
                 return i;
             }
         }
+        texture.activeID = -1;
         return -1;
-    }
-
-    public static void ActivateEx(params Texture[] textures)
-    {
-        Clear();
-        for(int i = 0; i < textures.Length; i++)
-        {
-            Activate(textures[i]);
-        }
     }
 
     public static void Deactivate(Texture texture)
     {
-        if(activeTextureDict.TryGetValue(texture, out var id))
+        if (activeTextureDict.TryGetValue(texture, out var id))
         {
             activeTextureDict.Remove(texture);
             activeTextures[id] = null;
         }
     }
-
-
-    //public Texture this[int index]
-    //{
-    //    get
-    //    {
-    //        return activeTextures[index];
-    //    }
-    //    set
-    //    {
-    //        if (value != null)
-    //        {
-    //            Gl.glActiveTexture(index + Gl.GL_TEXTURE0);
-    //            Gl.glBindTexture(Gl.GL_TEXTURE_2D, value.textureID);
-    //        }
-    //        activeTextures[index] = value;
-    //    }
-    //}
-
-    //public int Find(Texture texture)
-    //{
-    //    for (int i = 0; i < activeTextures.Length; i++)
-    //        if (texture == activeTextures[i])
-    //            return i;
-    //    return -1;
-    //}
-
-    //static ActiveTextures instance = null;
-    //private ActiveTextures() { }
-    //public static ActiveTextures textures
-    //{
-    //    get
-    //    {
-    //        if (instance == null) instance = new ActiveTextures();
-    //        return instance;
-    //    }
-    //}
-
-    //public static void DeactivateAll()
-    //{
-    //    if(instance!=null)
-    //    {
-    //        for(int i = 0; i < Count; i++)
-    //        {
-    //            instance.activeTextures[i] = null;
-    //        }
-    //    }
-    //}
 }
 
 
 public class Texture
 {
-	public uint textureID;
+    public uint textureID;
     public uint width;
     public uint height;
-    public int ActiveID => ActiveTextures.Get(this);
+    public int activeID = 0;
     public virtual int Target => Gl.GL_TEXTURE_2D;
-    //public int Activated()
-    //{
-    //    return ActiveTextures.Activate(this);
-    //}
-
-    //public int Deactivated()
-    //{
-    //    for(int i=0;i< ActiveTextures.Count; i++)
-    //    {
-    //        if(this == ActiveTextures.textures[i])
-    //        {
-    //            ActiveTextures.textures[i] = null;
-    //            return i;
-    //        }
-    //    }
-    //    return -1;
-    //}
-
+ 
     public static unsafe Texture Create(string filename)
     {
         filename = Utils.GetDataFilePath(filename);
         Console.WriteLine("Loading texture " + filename);
         //image format
         FREE_IMAGE_FORMAT fif = FREE_IMAGE_FORMAT.FIF_UNKNOWN;
-		//pointer to the image, once loaded
-		FIBITMAP dib = FIBITMAP.Zero;
-		//pointer to the image data
-		IntPtr bits = IntPtr.Zero;
-		//image width and height
-		int width = 0;
-		int height = 0;
-		//OpenGL's image ID to map to
-		uint gl_texID;
+        //pointer to the image, once loaded
+        FIBITMAP dib = FIBITMAP.Zero;
+        //pointer to the image data
+        IntPtr bits = IntPtr.Zero;
+        //image width and height
+        int width = 0;
+        int height = 0;
+        //OpenGL's image ID to map to
+        uint gl_texID;
 
-		//check the file signature and deduce its format
-		fif = FreeImage.GetFileType(filename, 0);
-		//if still unknown, try to guess the file format from the file extension
-		if (fif == FREE_IMAGE_FORMAT.FIF_UNKNOWN)
-			fif = FreeImage.GetFIFFromFilename(filename);
-		//if still unkown, return failure
-		if (fif == FREE_IMAGE_FORMAT.FIF_UNKNOWN)
-			return null;
+        //check the file signature and deduce its format
+        fif = FreeImage.GetFileType(filename, 0);
+        //if still unknown, try to guess the file format from the file extension
+        if (fif == FREE_IMAGE_FORMAT.FIF_UNKNOWN)
+            fif = FreeImage.GetFIFFromFilename(filename);
+        //if still unkown, return failure
+        if (fif == FREE_IMAGE_FORMAT.FIF_UNKNOWN)
+            return null;
 
-		//check that the plugin has reading capabilities and load the file
-		if (FreeImage.FIFSupportsReading(fif))
-			dib = FreeImage.Load(fif, filename, FREE_IMAGE_LOAD_FLAGS.DEFAULT);
-		//if the image failed to load, return failure
-		if (dib == FIBITMAP.Zero)
-			return null;
+        //check that the plugin has reading capabilities and load the file
+        if (FreeImage.FIFSupportsReading(fif))
+            dib = FreeImage.Load(fif, filename, FREE_IMAGE_LOAD_FLAGS.DEFAULT);
+        //if the image failed to load, return failure
+        if (dib == FIBITMAP.Zero)
+            return null;
         dib = FreeImage.ConvertTo32Bits(dib);
-		//retrieve the image data
-		bits = FreeImage.GetBits(dib);
-		//get the image width and height
-		width = (int)FreeImage.GetWidth(dib);
-		height = (int)FreeImage.GetHeight(dib);
-		//if this somehow one of these failed (they shouldn't), return failure
-		if ((bits == IntPtr.Zero) || (width == 0) || (height == 0))
-			return null;
+        //retrieve the image data
+        bits = FreeImage.GetBits(dib);
+        //get the image width and height
+        width = (int)FreeImage.GetWidth(dib);
+        height = (int)FreeImage.GetHeight(dib);
+        //if this somehow one of these failed (they shouldn't), return failure
+        if ((bits == IntPtr.Zero) || (width == 0) || (height == 0))
+            return null;
 
         int pixelCount = width * height;
         byte* p = (byte*)bits;
@@ -349,12 +319,12 @@ public class Texture
 
         //generate an OpenGL texture ID for this texture
         Gl.glGenTextures(1, &gl_texID);
-		Gl.glBindTexture(Gl.GL_TEXTURE_2D, gl_texID);
-		//store the texture data for OpenGL use
-		
-		//uint bpp = FreeImage.GetBPP(dib);
+        Gl.glBindTexture(Gl.GL_TEXTURE_2D, gl_texID);
+        //store the texture data for OpenGL use
 
-		Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, bits);
+        //uint bpp = FreeImage.GetBPP(dib);
+
+        Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, bits);
 
 
         Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
@@ -365,6 +335,6 @@ public class Texture
 
         var err = Gl.GetError();
         Console.WriteLine("[Texture:Create] " + err);
-		return new Texture { textureID = gl_texID };
-	}
+        return new Texture { textureID = gl_texID };
+    }
 }

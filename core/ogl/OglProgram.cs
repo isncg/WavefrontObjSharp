@@ -202,7 +202,7 @@ namespace Viewer
             public Uniform Apply(Texture texture)
             {
                 //cache.textureUnit = texture.ActiveID;
-                cache.i1 = texture.ActiveID;
+                cache.i1 = ActiveTextures.Activate(texture); //texture.ActiveID;
                 ApplyCache();
                 Log.LogOnGlErrF("[Uniform:Apply Texture] {0}", name);
                 return this;
@@ -223,6 +223,7 @@ namespace Viewer
             {
                 if (null == this.uniformConfig)
                     this.uniformConfig = new UniformConfig { program = this };
+                ActiveTextures.Clear();
                 callback.Invoke(this.uniformConfig);
             }
             return true;
