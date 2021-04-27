@@ -14,9 +14,10 @@ namespace Viewer
         ObjModel teapotModel = null;
         Texture texRemilia = null;
         OglProgram progTeapot = null;
-        OglProgram progQuad = null;
+        OglProgram progRect = null;
+        OglProgram progDeferred = null;
         List<OglVertexArray> teapotVertexArrays = null;
-        OglVertexArray quadVertexArray = null;
+        List<OglVertexArray> viewRects = new List<OglVertexArray>();
         FrameBuffer frameBuffer = null;
         public override void Init()
         {
@@ -28,17 +29,19 @@ namespace Viewer
             teapotModel = Parser.CreateDefault().Run("/data/teapot.obj");
             teapotVertexArrays = new List<Mesh>(teapotModel.meshDict.Values).ConvertAll(mesh => create(mesh));
 
-            progQuad = new OglProgram("./quad.vert", "./quad.frag");
-
-            quadVertexArray = CreateQuad();
-
-            Input.RegisterHandler(new CameraFirstPersonInputController(camera, true)); //new CameraFirstPersonController.InputHandler(controller: fpController, camera: camera, mouseLookEnable: true));
-      
             texRemilia = Texture.Create("/data/remilia.jpg");
 
             frameBuffer = new FrameBuffer();
-            frameBuffer.Init(1, true, 1920, 1080);
+            frameBuffer.Init(4, true, 1920, 1080);
             frameBuffer.clearOption.color.Set(0.0f, 0.0f, 0.0f, 0.0f);
+
+            viewRects.Add(CreateRect(-1,    -0.02f,   0.02f,   1));
+            viewRects.Add(CreateRect(0.02f, 1,        0.02f,   1));
+            viewRects.Add(CreateRect(-1,    -0.02f,   -1,      -0.02f));
+            viewRects.Add(CreateRect(0.02f, 1,        -1,      -0.02f));
+            progRect = new OglProgram("./rect.vert", "rect.frag");
+            progDeferred = new OglProgram("./deferred.vert", "./deferred.frag");
+            Input.RegisterHandler(new CameraFirstPersonInputController(camera, true)); //new CameraFirstPersonController.InputHandler(controller: fpController, camera: camera, mouseLookEnable: true));
         }
 
         public override void Render(Window window)
@@ -46,9 +49,7 @@ namespace Viewer
             base.Render(window);
 
             frameBuffer.Use(clear:true);
-            //ActiveTextures.Clear();
-            //ActiveTextures.Activate(texRemilia);
-            progTeapot.Use((config) => {
+            progDeferred.Use((config) => {
                 config.SetUniform(OglProgram.UniformID._mvp, camera.MVP);
                 config.SetUniform(OglProgram.UniformID._tex, texRemilia);
             });
@@ -57,12 +58,11 @@ namespace Viewer
                 va.Draw();
 
             FrameBuffer.UseDefault(window, clear:true);
-            //ActiveTextures.Clear();
-            //ActiveTextures.Activate(frameBuffer.colors[0]);
-            progQuad.Use((config) => {
-                config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[0]);
-            });
-            quadVertexArray.Draw();
+            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[0])); viewRects[0].Draw();
+            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[1])); viewRects[1].Draw();
+            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[2])); viewRects[2].Draw();
+            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[3])); viewRects[3].Draw();
+            //progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.depth)); viewRects[1].Draw();
         }
 
         OglVertexArray create(Mesh mesh)
@@ -81,16 +81,16 @@ namespace Viewer
             return vertexArray;
         }
 
-        OglVertexArray CreateQuad()
+        OglVertexArray CreateRect(float xMin, float xMax, float yMin, float yMax)
         {
             return new OglVertexArray().Init(
-                option => option.SetAttribute(OglVertexAttributeType.Float3, OglVertexAttributeType.Float3, OglVertexAttributeType.Float2),
+                option => option.SetAttribute(OglVertexAttributeType.Float2, OglVertexAttributeType.Float2),
                 builder =>
                 {
-                    builder.AddVertex(new float[] { 0, 0, 0 }, new float[] { 0, 0, 1 }, new float[] { 0, 0 });
-                    builder.AddVertex(new float[] { 1, 0, 0 }, new float[] { 0, 0, 1 }, new float[] { 1, 0 });
-                    builder.AddVertex(new float[] { 1, 1, 0 }, new float[] { 0, 0, 1 }, new float[] { 1, 1 });
-                    builder.AddVertex(new float[] { 0, 1, 0 }, new float[] { 0, 0, 1 }, new float[] { 0, 1 });
+                    builder.AddVertex(new float[] { xMin, yMin }, new float[] { 0, 0 });
+                    builder.AddVertex(new float[] { xMax, yMin }, new float[] { 1, 0 });
+                    builder.AddVertex(new float[] { xMax, yMax }, new float[] { 1, 1 });
+                    builder.AddVertex(new float[] { xMin, yMax }, new float[] { 0, 1 });
 
                     builder.AddIndices(OglVertexArray.Primitive.Type.Triangles, new uint[] { 0, 1, 2, 0, 2, 3 });
                 });
