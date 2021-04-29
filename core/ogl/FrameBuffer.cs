@@ -197,6 +197,11 @@ public class GBuffer : FrameBuffer
             new FrameBufferAttachmentInfo{internalFormat=Gl.GL_DEPTH_COMPONENT32F, format=Gl.GL_DEPTH_COMPONENT, attachment=Gl.GL_DEPTH_ATTACHMENT  },
         };
         Init(infos, width, height);
+
+        colors = new Texture[infos.Length - 1];
+        for (int i = 0; i < colors.Length; i++)
+            colors[i] = new Texture { textureID = infos[i].textureID, width = width, height = height };
+        depth = new Texture { textureID = infos[infos.Length - 1].textureID, width = width, height = height };
     }
 
     public Texture GetRenderTexture(RenderTexture renderTexture)

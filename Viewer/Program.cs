@@ -18,7 +18,7 @@ namespace Viewer
         OglProgram progDeferred = null;
         List<OglVertexArray> teapotVertexArrays = null;
         List<OglVertexArray> viewRects = new List<OglVertexArray>();
-        FrameBuffer frameBuffer = null;
+        GBuffer gBuffer = null;
         public override void Init()
         {
             base.Init();
@@ -31,9 +31,9 @@ namespace Viewer
 
             texRemilia = Texture.Create("/data/remilia.jpg");
 
-            frameBuffer = new FrameBuffer();
-            frameBuffer.Init(4, true, 1920, 1080);
-            frameBuffer.clearOption.color.Set(0.0f, 0.0f, 0.0f, 0.0f);
+            gBuffer = new GBuffer();
+            gBuffer.Init(1920, 1080);
+            gBuffer.clearOption.color.Set(0.0f, 0.0f, 0.0f, 0.0f);
 
             viewRects.Add(CreateRect(-1,    -0.02f,   0.02f,   1));
             viewRects.Add(CreateRect(0.02f, 1,        0.02f,   1));
@@ -48,7 +48,7 @@ namespace Viewer
         {
             base.Render(window);
 
-            frameBuffer.Use(clear:true);
+            gBuffer.Use(clear:true);
             progDeferred.Use((config) => {
                 config.SetUniform(OglProgram.UniformID._mvp, camera.MVP);
                 config.SetUniform(OglProgram.UniformID._tex, texRemilia);
@@ -58,10 +58,10 @@ namespace Viewer
                 va.Draw();
 
             FrameBuffer.UseDefault(window, clear:true);
-            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[0])); viewRects[0].Draw();
-            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[1])); viewRects[1].Draw();
-            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[2])); viewRects[2].Draw();
-            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.colors[3])); viewRects[3].Draw();
+            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, gBuffer.GetRenderTexture(GBuffer.RenderTexture.Color))); viewRects[0].Draw();
+            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, gBuffer.GetRenderTexture(GBuffer.RenderTexture.Normal))); viewRects[1].Draw();
+            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, gBuffer.GetRenderTexture(GBuffer.RenderTexture.Position))); viewRects[2].Draw();
+            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, gBuffer.GetRenderTexture(GBuffer.RenderTexture.Texcoord))); viewRects[3].Draw();
             //progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.depth)); viewRects[1].Draw();
         }
 
