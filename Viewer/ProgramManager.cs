@@ -48,10 +48,10 @@ namespace Viewer
 
         public void Init()
         {
-            programTeapot = new OglProgram<TeapotUniformSet>("./teapot.vert", "./teapot.frag");
-            programRect = new OglProgram<RectUniformSet>("./rect.vert", "./rect.frag");
-            programDeferred = new OglProgram<DeferredUniformSet>("./deferred.vert", "./deferred.frag");
-            programDeferredDebug = new OglProgram<DeferredDebugUniformSet>("./deferred_debug.vert", "./deferred_debug.frag");
+            programTeapot = new OglProgram<TeapotUniformSet>("./shader/teapot.vert", "./shader/teapot.frag");
+            programRect = new OglProgram<RectUniformSet>("./shader/rect.vert", "./shader/rect.frag");
+            programDeferred = new OglProgram<DeferredUniformSet>("./shader/deferred.vert", "./shader/deferred.frag");
+            programDeferredDebug = new OglProgram<DeferredDebugUniformSet>("./shader/deferred_debug.vert", "./shader/deferred_debug.frag");
         }
     }
 }
