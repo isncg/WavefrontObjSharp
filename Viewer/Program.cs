@@ -13,9 +13,12 @@ namespace Viewer
         //CameraFirstPersonController fpController = new CameraFirstPersonController();
         ObjModel teapotModel = null;
         Texture texRemilia = null;
-        OglProgram progTeapot = null;
-        OglProgram progRect = null;
-        OglProgram progDeferred = null;
+        //OglProgram progTeapot = null;
+        //OglProgram progRect = null;
+        //OglProgram progDeferred = null;
+        ProgramManager pmgr = new ProgramManager();
+       
+
         List<OglVertexArray> teapotVertexArrays = null;
         List<OglVertexArray> viewRects = new List<OglVertexArray>();
         GBuffer gBuffer = null;
@@ -24,8 +27,8 @@ namespace Viewer
             base.Init();
             glEnable(GL_DEPTH_TEST);
             glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
-
-            progTeapot = new OglProgram("./triangle.vert", "./triangle.frag");
+            pmgr.Init();
+            //progTeapot = new OglProgram("./teapot.vert", "./teapot.frag");
             teapotModel = Parser.CreateDefault().Run("/data/teapot.obj");
             teapotVertexArrays = new List<Mesh>(teapotModel.meshDict.Values).ConvertAll(mesh => create(mesh));
 
@@ -35,12 +38,12 @@ namespace Viewer
             gBuffer.Init(1920, 1080);
             gBuffer.clearOption.color.Set(0.0f, 0.0f, 0.0f, 0.0f);
 
-            viewRects.Add(CreateRect(-1,    -0.02f,   0.02f,   1));
-            viewRects.Add(CreateRect(0.02f, 1,        0.02f,   1));
-            viewRects.Add(CreateRect(-1,    -0.02f,   -1,      -0.02f));
-            viewRects.Add(CreateRect(0.02f, 1,        -1,      -0.02f));
-            progRect = new OglProgram("./rect.vert", "rect.frag");
-            progDeferred = new OglProgram("./deferred.vert", "./deferred.frag");
+            viewRects.Add(CreateRect(-1, -0.02f, 0.02f, 1));
+            viewRects.Add(CreateRect(0.02f, 1, 0.02f, 1));
+            viewRects.Add(CreateRect(-1, -0.02f, -1, -0.02f));
+            viewRects.Add(CreateRect(0.02f, 1, -1, -0.02f));
+            //progRect = new OglProgram("./rect.vert", "rect.frag");
+            //progDeferred = new OglProgram("./deferred.vert", "./deferred.frag");
             Input.RegisterHandler(new CameraFirstPersonInputController(camera, true)); //new CameraFirstPersonController.InputHandler(controller: fpController, camera: camera, mouseLookEnable: true));
         }
 
@@ -48,20 +51,21 @@ namespace Viewer
         {
             base.Render(window);
 
-            gBuffer.Use(clear:true);
-            progDeferred.Use((config) => {
-                config.SetUniform(OglProgram.UniformID._mvp, camera.MVP);
-                config.SetUniform(OglProgram.UniformID._tex, texRemilia);
+            gBuffer.Use(clear: true);
+            pmgr.programDeferred.Use((config) =>
+            {
+                config._mvp = camera.MVP;
+                config._tex = texRemilia;
             });
             // Draw the triangle.
             foreach (var va in teapotVertexArrays)
                 va.Draw();
 
-            FrameBuffer.UseDefault(window, clear:true);
-            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, gBuffer.GetRenderTexture(GBuffer.RenderTexture.Color))); viewRects[0].Draw();
-            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, gBuffer.GetRenderTexture(GBuffer.RenderTexture.Normal))); viewRects[1].Draw();
-            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, gBuffer.GetRenderTexture(GBuffer.RenderTexture.Position))); viewRects[2].Draw();
-            progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, gBuffer.GetRenderTexture(GBuffer.RenderTexture.Texcoord))); viewRects[3].Draw();
+            FrameBuffer.UseDefault(window, clear: true);
+            pmgr.programRect.Use(config => config._tex = gBuffer.GetRenderTexture(GBuffer.RenderTexture.Color)); viewRects[0].Draw();
+            pmgr.programRect.Use(config => config._tex = gBuffer.GetRenderTexture(GBuffer.RenderTexture.Normal)); viewRects[1].Draw();
+            pmgr.programRect.Use(config => config._tex = gBuffer.GetRenderTexture(GBuffer.RenderTexture.Position)); viewRects[2].Draw();
+            pmgr.programRect.Use(config => config._tex = gBuffer.GetRenderTexture(GBuffer.RenderTexture.Texcoord)); viewRects[3].Draw();
             //progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.depth)); viewRects[1].Draw();
         }
 
