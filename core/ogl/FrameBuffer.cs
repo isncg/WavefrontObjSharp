@@ -204,8 +204,15 @@ public class GBuffer : FrameBuffer
         depth = new Texture { textureID = infos[infos.Length - 1].textureID, width = width, height = height };
     }
 
-    public Texture GetRenderTexture(RenderTexture renderTexture)
-    {
-        return this.colors[(int)renderTexture];
-    }
+    public Texture TexColor=> colors[(int)RenderTexture.Color];
+    public Texture TexPosition => colors[(int)RenderTexture.Position];
+    public Texture TexDiffuse => colors[(int)RenderTexture.Diffuse];
+    public Texture TexNormal => colors[(int)RenderTexture.Normal];
+    public Texture TexTexcoord => colors[(int)RenderTexture.Texcoord];
+
+
+    //public Texture GetRenderTexture(RenderTexture renderTexture)
+    //{
+    //    return this.colors[(int)renderTexture];
+    //}
 }

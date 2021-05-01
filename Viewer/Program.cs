@@ -62,10 +62,10 @@ namespace Viewer
                 va.Draw();
 
             FrameBuffer.UseDefault(window, clear: true);
-            pmgr.programRect.Use(config => config._tex = gBuffer.GetRenderTexture(GBuffer.RenderTexture.Color)); viewRects[0].Draw();
-            pmgr.programRect.Use(config => config._tex = gBuffer.GetRenderTexture(GBuffer.RenderTexture.Normal)); viewRects[1].Draw();
-            pmgr.programRect.Use(config => config._tex = gBuffer.GetRenderTexture(GBuffer.RenderTexture.Position)); viewRects[2].Draw();
-            pmgr.programRect.Use(config => config._tex = gBuffer.GetRenderTexture(GBuffer.RenderTexture.Texcoord)); viewRects[3].Draw();
+            pmgr.programRect.Use(config => config._tex = gBuffer.TexColor); viewRects[0].Draw();
+            pmgr.programRect.Use(config => config._tex = gBuffer.TexNormal); viewRects[1].Draw();
+            pmgr.programRect.Use(config => config._tex = gBuffer.TexPosition); viewRects[2].Draw();
+            pmgr.programRect.Use(config => config._tex = gBuffer.TexTexcoord); viewRects[3].Draw();
             //progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.depth)); viewRects[1].Draw();
         }
 

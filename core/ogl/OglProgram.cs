@@ -210,8 +210,9 @@ namespace Viewer
     {
         public OglProgramBase program;
         public Dictionary<int, Uniform> commonUniformInfoDict = new Dictionary<int, Uniform>();
-
-        protected abstract string GetUniformName(int id);
+        private string[] uniformNames = null;
+        protected abstract string[] GetUniformNames();
+        protected string GetUniformName(int id) => (null == uniformNames) ? ((uniformNames = GetUniformNames())[id]) : uniformNames[id];
         protected Uniform GetUniform<T>(int id) where T : Uniform, new()
         {
             Uniform result = null;

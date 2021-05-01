@@ -1,0 +1,25 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using WavefrontObjSharp;
+
+namespace Viewer
+{
+    class ProgramManager
+    {
+		{% for k,v in shaderUniformDic.items() %}public class {{ k.capitalize() }}UniformSet : AbstractUniformSet
+        {
+            protected override string[] GetUniformNames() => new string[] { {% for u in v %}"{{u[1]}}"{% if loop.index < v.__len__() %}, {% endif %}{% endfor %} };
+			{% for u in v %}public {{ typeDict[u[0]] }} {{ u[1] }} { set { SetUniformValue({{ loop.index-1 }}, value); } }{% if loop.index < v.__len__() %}
+			{% endif %}{% endfor %}
+        }
+        public OglProgram<{{ k.capitalize() }}UniformSet> program{{ k.capitalize() }};
+
+		{% endfor %}
+        public void Init()
+        {
+			{% for k,v in shaderFileNameDic.items() %}program{{ k.capitalize() }} = new OglProgram<{{ k.capitalize() }}UniformSet>({% for f in v %}{% if loop.index>1 %}, {% endif %}"./shader/{{ f }}"{% endfor %});
+			{% endfor %}
+        }
+    }
+}
