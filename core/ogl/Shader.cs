@@ -57,10 +57,12 @@ namespace Viewer
                     var shader = CreateShader((int)kv.Key, glsl);
                     shaders.Add(shader);
                     Gl.glAttachShader(Program, shader);
+                    Console.WriteLine(string.Format("[Shader:Compile] glAttachShader {0} {1}", kv.Value.filename, shader));
                     Log.LogOnGlErrF("[Shader:Compile] glAttachShader {0} {1}", kv.Value.filename, shader);
                 }
                 Gl.glLinkProgram(Program);
                 var filenames = string.Join(",", new List<ShaderFile>(shaderFiles.Values).ConvertAll(f => f.filename));
+                Console.WriteLine(string.Format("[Shader:Compile] glLinkProgram {0} {1}", Program, filenames));
                 Log.LogOnGlErrF("[Shader:Compile] glLinkProgram {0} {1}", Program, filenames);
                 foreach (var shader in shaders)
                 {

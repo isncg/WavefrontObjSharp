@@ -32,76 +32,40 @@ public class FrameBufferClearOption
 
 public class FrameBufferAttachmentInfo
 {
-    //public enum Format
-    //{
-    //    RGB = Gl.GL_RGB,
-    //    DEPTH_COMPONENT = Gl.GL_DEPTH_COMPONENT
-    //}
-
-    //public enum InternalFormat
-    //{
-    //    RGB = Gl.GL_RGB32F,
-    //    DEPTH_COMPONENT = Gl.GL_DEPTH_COMPONENT32F
-    //}
-    //public enum AttachmentType
-    //{
-    //    GL_COLOR_ATTACHMENT = Gl.GL_COLOR_ATTACHMENT0,
-    //    GL_DEPTH_ATTACHMENT = Gl.GL_DEPTH_ATTACHMENT,
-    //    GL_STENCIL_ATTACHMENT = Gl.GL_STENCIL_ATTACHMENT
-    //}
-
     public int internalFormat;
     public int format;
     public int attachment;
-    public uint textureID;
 }
 
-public class FrameBufferColorAttachmentInfo : FrameBufferAttachmentInfo
-{
-    public FrameBufferColorAttachmentInfo(int index)
-    {
-        this.internalFormat = Gl.GL_RGB32F;
-        this.format = Gl.GL_RGB;
-        this.attachment = Gl.GL_COLOR_ATTACHMENT0 + index;
-    }
-}
+//public class FrameBufferColorAttachmentInfo : FrameBufferAttachmentInfo
+//{
+//    public FrameBufferColorAttachmentInfo(int index)
+//    {
+//        this.internalFormat = Gl.GL_RGB32F;
+//        this.format = Gl.GL_RGB;
+//        this.attachment = Gl.GL_COLOR_ATTACHMENT0 + index;
+//    }
+//}
 
-public class FrameBufferDepthAttachmentInfo : FrameBufferAttachmentInfo
-{
-    public FrameBufferDepthAttachmentInfo()
-    {
-        this.internalFormat = Gl.GL_DEPTH_COMPONENT32F;
-        this.format = Gl.GL_DEPTH_COMPONENT;
-        this.attachment = Gl.GL_DEPTH_ATTACHMENT;
-    }
-}
+//public class FrameBufferDepthAttachmentInfo : FrameBufferAttachmentInfo
+//{
+//    public FrameBufferDepthAttachmentInfo()
+//    {
+//        this.internalFormat = Gl.GL_DEPTH_COMPONENT32F;
+//        this.format = Gl.GL_DEPTH_COMPONENT;
+//        this.attachment = Gl.GL_DEPTH_ATTACHMENT;
+//    }
+//}
 
 public class FrameBuffer
 {
     public uint fbo;
-    public Texture[] colors;
-    public Texture depth;
+    //public Texture[] colors;
+    //public Texture depth;
+    public Texture[] renderTextures;
     private uint width;
     private uint height;
     public FrameBufferClearOption clearOption = new FrameBufferClearOption();
-    public virtual void Init(int colorBufferCount, bool hasDepth, uint width, uint height)
-    {
-        int textureCount = hasDepth ? colorBufferCount + 1 : colorBufferCount;
-        FrameBufferAttachmentInfo[] attachmentInfos = new FrameBufferAttachmentInfo[textureCount];
-        for (int i = 0; i < colorBufferCount; i++)
-            attachmentInfos[i] = new FrameBufferColorAttachmentInfo(i);
-        if (hasDepth)
-            attachmentInfos[textureCount - 1] = new FrameBufferDepthAttachmentInfo();
-
-        Init(attachmentInfos, width, height);
-
-        colors = new Texture[colorBufferCount];
-        for (int i = 0; i < colorBufferCount; i++)
-            colors[i] = new Texture { textureID = attachmentInfos[i].textureID, width = width, height = height };
-        if (hasDepth)
-            depth = new Texture { textureID = attachmentInfos[textureCount - 1].textureID, width = width, height = height };
-    }
-
     protected void Init(FrameBufferAttachmentInfo[] attachmentInfos, uint width, uint height)
     {
         this.width = width;
@@ -110,11 +74,12 @@ public class FrameBuffer
         var lastTexture2D = Gl.glGetInteger(Gl.GL_TEXTURE_BINDING_2D);
         fbo = Gl.glGenFramebuffer();
         Gl.glBindFramebuffer(fbo);
-        var textures = Gl.glGenTextures(attachmentInfos.Length);
+        var textureIDs = Gl.glGenTextures(attachmentInfos.Length);
+        renderTextures = new Texture[attachmentInfos.Length];
         List<int> drawBuffers = new List<int>();
         for (int i = 0; i < attachmentInfos.Length; i++)
         {
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, textures[i]); Log.LogOnGlErrF("[Framebuffer:Init] bindTexture {0}", i);
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, textureIDs[i]); Log.LogOnGlErrF("[Framebuffer:Init] bindTexture {0}", i);
             Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, (int)attachmentInfos[i].internalFormat, (int)width, (int)height, 0, (int)attachmentInfos[i].format, Gl.GL_FLOAT, System.IntPtr.Zero); Log.LogOnGlErrF("[Framebuffer:Init] texImage {0}", i);
 
             int attachment = (int)attachmentInfos[i].attachment;
@@ -126,9 +91,12 @@ public class FrameBuffer
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
             Log.LogOnGlErrF("[Framebuffer:Init] texParam {0}", i);
-            Gl.glFramebufferTexture2D(Gl.GL_FRAMEBUFFER, attachment, Gl.GL_TEXTURE_2D, textures[i], 0); Log.LogOnGlErrF("[Framebuffer:Init] attach {0}", i);
-            attachmentInfos[i].textureID = textures[i];
-
+            Gl.glFramebufferTexture2D(Gl.GL_FRAMEBUFFER, attachment, Gl.GL_TEXTURE_2D, textureIDs[i], 0); Log.LogOnGlErrF("[Framebuffer:Init] attach {0}", i);
+            //attachmentInfos[i].textureID = textureIDs[i];
+            renderTextures[i] = new Texture { textureID = textureIDs[i], width = width, height = height };
+            //renderTextures[i].textureID = textureIDs[i];
+            //renderTextures[i].width = width;
+            //renderTextures[i].height = height;
         }
         Gl.glDrawBuffers(drawBuffers.ToArray());
         var status = Gl.glCheckFramebufferStatus(Gl.GL_FRAMEBUFFER);
@@ -168,14 +136,33 @@ public class FrameBuffer
     }
 }
 
+public class CommonFrameBuffer: FrameBuffer
+{
+    public void Init(int colorBufferCount, bool hasDepth, uint width, uint height)
+    {
+        int textureCount = hasDepth ? colorBufferCount + 1 : colorBufferCount;
+        FrameBufferAttachmentInfo[] attachmentInfos = new FrameBufferAttachmentInfo[textureCount];
+        for (int i = 0; i < colorBufferCount; i++)
+            attachmentInfos[i] = new FrameBufferAttachmentInfo
+            {
+                internalFormat = Gl.GL_RGB32F,
+                format = Gl.GL_RGB,
+                attachment = Gl.GL_COLOR_ATTACHMENT0 + i,
+            };
+        if (hasDepth)
+            attachmentInfos[textureCount - 1] = new FrameBufferAttachmentInfo
+            {
+                internalFormat = Gl.GL_DEPTH_COMPONENT32F,
+                format = Gl.GL_DEPTH_COMPONENT,
+                attachment = Gl.GL_DEPTH_ATTACHMENT
+            };
+
+        Init(attachmentInfos, width, height);
+    }
+}
+
 public class GBuffer : FrameBuffer
 {
-    public override void Init(int colorBufferCount, bool hasDepth, uint width, uint height)
-    {
-        //base.Init(colorBufferCount, hasDepth, width, height);
-        throw new NotImplementedException();
-    }
-
     public enum RenderTexture
     {
         Color = 0,
@@ -197,22 +184,25 @@ public class GBuffer : FrameBuffer
             new FrameBufferAttachmentInfo{internalFormat=Gl.GL_DEPTH_COMPONENT32F, format=Gl.GL_DEPTH_COMPONENT, attachment=Gl.GL_DEPTH_ATTACHMENT  },
         };
         Init(infos, width, height);
-
-        colors = new Texture[infos.Length - 1];
-        for (int i = 0; i < colors.Length; i++)
-            colors[i] = new Texture { textureID = infos[i].textureID, width = width, height = height };
-        depth = new Texture { textureID = infos[infos.Length - 1].textureID, width = width, height = height };
     }
 
-    public Texture TexColor=> colors[(int)RenderTexture.Color];
-    public Texture TexPosition => colors[(int)RenderTexture.Position];
-    public Texture TexDiffuse => colors[(int)RenderTexture.Diffuse];
-    public Texture TexNormal => colors[(int)RenderTexture.Normal];
-    public Texture TexTexcoord => colors[(int)RenderTexture.Texcoord];
+    public Texture TexColor=> renderTextures[(int)RenderTexture.Color];
+    public Texture TexPosition => renderTextures[(int)RenderTexture.Position];
+    public Texture TexDiffuse => renderTextures[(int)RenderTexture.Diffuse];
+    public Texture TexNormal => renderTextures[(int)RenderTexture.Normal];
+    public Texture TexTexcoord => renderTextures[(int)RenderTexture.Texcoord];
+}
 
-
-    //public Texture GetRenderTexture(RenderTexture renderTexture)
-    //{
-    //    return this.colors[(int)renderTexture];
-    //}
+public class ShadowMapBuffer : FrameBuffer
+{
+    public Matrix4x4 shadowProjection;
+    public void Init(uint width, uint height)
+    {
+        FrameBufferAttachmentInfo[] infos = new FrameBufferAttachmentInfo[]
+        {
+            new FrameBufferAttachmentInfo{ internalFormat = Gl.GL_DEPTH_COMPONENT32F, format = Gl.GL_DEPTH_COMPONENT, attachment = Gl.GL_DEPTH_ATTACHMENT },
+        };
+        Init(infos, width, height);
+    }
+    public Texture TexDepth => renderTextures[0];
 }
