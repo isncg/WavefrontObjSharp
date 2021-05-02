@@ -22,7 +22,7 @@ namespace Viewer
     }
 
 
-    public class OglProgramBase
+    public class ShaderBase
     {
         public Dictionary<uint, ShaderFile> shaderFiles = new Dictionary<uint, ShaderFile>();
 
@@ -33,9 +33,9 @@ namespace Viewer
         {
             var shader = Gl.glCreateShader(type);
             Gl.glShaderSource(shader, source);
-            Log.LogOnGlErrF("[OglProgram:CreateShader] source {0} {1}", type, source);
+            Log.LogOnGlErrF("[Shader:CreateShader] source {0} {1}", type, source);
             Gl.glCompileShader(shader);
-            Log.LogOnGlErrF("[OglProgram:CreateShader] compile {0} {1}", type, source);
+            Log.LogOnGlErrF("[Shader:CreateShader] compile {0} {1}", type, source);
             return shader;
         }
 
@@ -57,11 +57,11 @@ namespace Viewer
                     var shader = CreateShader((int)kv.Key, glsl);
                     shaders.Add(shader);
                     Gl.glAttachShader(Program, shader);
-                    Log.LogOnGlErrF("[OglProgram:Compile] glAttachShader {0} {1}", kv.Value.filename, shader);
+                    Log.LogOnGlErrF("[Shader:Compile] glAttachShader {0} {1}", kv.Value.filename, shader);
                 }
                 Gl.glLinkProgram(Program);
                 var filenames = string.Join(",", new List<ShaderFile>(shaderFiles.Values).ConvertAll(f => f.filename));
-                Log.LogOnGlErrF("[OglProgram:Compile] glLinkProgram {0} {1}", Program, filenames);
+                Log.LogOnGlErrF("[Shader:Compile] glLinkProgram {0} {1}", Program, filenames);
                 foreach (var shader in shaders)
                 {
                     Console.WriteLine(Gl.glGetShaderInfoLog(shader));
@@ -83,17 +83,17 @@ namespace Viewer
         }
     }
 
-    public class OglProgramInitOption
+    public class ShaderInitOption
     {
-        private OglProgramBase oglProgram;
+        private ShaderBase oglProgram;
         public bool IsCompileNow { get; private set; } = false;
 
-        public OglProgramInitOption(OglProgramBase oglProgram)
+        public ShaderInitOption(ShaderBase oglProgram)
         {
             this.oglProgram = oglProgram;
         }
 
-        public OglProgramInitOption ShaderFile(ShaderType shaderType, string fileName)
+        public ShaderInitOption ShaderFile(ShaderType shaderType, string fileName)
         {
             if (oglProgram.shaderFiles.ContainsKey((uint)shaderType))
                 Console.WriteLine(string.Format("ERROR: Shader type {0} already exist '{1}'", shaderType, oglProgram.shaderFiles[(uint)shaderType].filename));
@@ -102,7 +102,7 @@ namespace Viewer
             return this;
         }
 
-        public OglProgramInitOption ShaderFiles(params string[] fileNames)
+        public ShaderInitOption ShaderFiles(params string[] fileNames)
         {
             for (int i = 0; i < fileNames.Length; i++)
             {
@@ -124,26 +124,26 @@ namespace Viewer
             return this;
         }
 
-        public OglProgramInitOption Compile(bool compileNow = true)
+        public ShaderInitOption Compile(bool compileNow = true)
         {
             this.IsCompileNow = compileNow;
             return this;
         }
     }
 
-    public class OglProgram<T> : OglProgramBase where T: AbstractUniformSet, new()
+    public class Shader<T> : ShaderBase where T: UniformSet, new()
     {
-        public OglProgram() { }
-        public OglProgram(params string[] fileNames)
+        public Shader() { }
+        public Shader(params string[] fileNames)
         {
             Init((option) => { option.Compile().ShaderFiles(fileNames); });
         }
 
-        public OglProgram<T> Init(Action<OglProgramInitOption> callback)
+        public Shader<T> Init(Action<ShaderInitOption> callback)
         {
             if (callback != null)
             {
-                var option = new OglProgramInitOption(this);
+                var option = new ShaderInitOption(this);
                 callback(option);
                 if (option.IsCompileNow)
                     Compile();
@@ -154,7 +154,7 @@ namespace Viewer
         private T uniformConfig = null;
         public bool Use(Action<T> callback)
         {
-            if (!Compile())
+            if (!Compile())// Compile returns false if already compiled
             {
                 Gl.glUseProgram(Program);
             }
@@ -206,9 +206,9 @@ namespace Viewer
         }
     }
 
-    public abstract class AbstractUniformSet
+    public abstract class UniformSet
     {
-        public OglProgramBase program;
+        public ShaderBase program;
         public Dictionary<int, Uniform> commonUniformInfoDict = new Dictionary<int, Uniform>();
         private string[] uniformNames = null;
         protected abstract string[] GetUniformNames();

@@ -16,7 +16,7 @@ namespace Viewer
         //OglProgram progTeapot = null;
         //OglProgram progRect = null;
         //OglProgram progDeferred = null;
-        ProgramManager pmgr = new ProgramManager();
+        ShaderManager shaders = new ShaderManager();
        
 
         List<OglVertexArray> teapotVertexArrays = null;
@@ -27,7 +27,7 @@ namespace Viewer
             base.Init();
             glEnable(GL_DEPTH_TEST);
             glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
-            pmgr.Init();
+            shaders.Init();
             //progTeapot = new OglProgram("./teapot.vert", "./teapot.frag");
             teapotModel = Parser.CreateDefault().Run("/data/teapot.obj");
             teapotVertexArrays = new List<Mesh>(teapotModel.meshDict.Values).ConvertAll(mesh => create(mesh));
@@ -52,20 +52,20 @@ namespace Viewer
             base.Render(window);
 
             gBuffer.Use(clear: true);
-            pmgr.programDeferred.Use((config) =>
+            shaders.deferred.Use((uniforms) =>
             {
-                config._mvp = camera.MVP;
-                config._tex = texRemilia;
+                uniforms._mvp = camera.MVP;
+                uniforms._tex = texRemilia;
             });
             // Draw the triangle.
             foreach (var va in teapotVertexArrays)
                 va.Draw();
 
             FrameBuffer.UseDefault(window, clear: true);
-            pmgr.programRect.Use(config => config._tex = gBuffer.TexColor); viewRects[0].Draw();
-            pmgr.programRect.Use(config => config._tex = gBuffer.TexNormal); viewRects[1].Draw();
-            pmgr.programRect.Use(config => config._tex = gBuffer.TexPosition); viewRects[2].Draw();
-            pmgr.programRect.Use(config => config._tex = gBuffer.TexTexcoord); viewRects[3].Draw();
+            shaders.rect.Use(uniforms => uniforms._tex = gBuffer.TexColor); viewRects[0].Draw();
+            shaders.rect.Use(uniforms => uniforms._tex = gBuffer.TexNormal); viewRects[1].Draw();
+            shaders.rect.Use(uniforms => uniforms._tex = gBuffer.TexPosition); viewRects[2].Draw();
+            shaders.rect.Use(uniforms => uniforms._tex = gBuffer.TexTexcoord); viewRects[3].Draw();
             //progRect.Use(config => config.SetUniform(OglProgram.UniformID._tex, frameBuffer.depth)); viewRects[1].Draw();
         }
 
